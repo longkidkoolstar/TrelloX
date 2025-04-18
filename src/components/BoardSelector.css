@@ -1,0 +1,106 @@
+.board-selector {
+  position: relative;
+  margin-right: 20px;
+}
+
+.board-selector-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  min-width: 150px;
+  text-align: left;
+}
+
+.board-selector-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.board-selector-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 300px;
+  background-color: white;
+  border-radius: 3px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  margin-top: 4px;
+}
+
+.board-selector-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.board-selector-dropdown-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.board-selector-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.board-selector-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.board-selector-item:hover {
+  background-color: #f5f5f5;
+}
+
+.board-selector-item.active {
+  background-color: #e4f0f6;
+}
+
+.board-selector-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  margin-right: 12px;
+}
+
+.board-selector-item span {
+  color: #172b4d;
+  font-size: 14px;
+}
+
+.board-selector-add {
+  border-top: 1px solid #e1e4e8;
+}
+
+.board-selector-add-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  margin-right: 12px;
+  background-color: #ebecf0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #172b4d;
+  font-size: 18px;
+}
+
+.board-selector-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+}

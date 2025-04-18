@@ -1,0 +1,132 @@
+.board-creator-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.board-creator {
+  background-color: white;
+  border-radius: 3px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.board-creator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.board-creator-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #172b4d;
+}
+
+.board-creator-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b778c;
+  cursor: pointer;
+}
+
+.board-creator-preview {
+  height: 120px;
+  border-radius: 3px;
+  margin: 16px;
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.board-creator-title-input {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 3px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px;
+  width: 100%;
+}
+
+.board-creator-title-input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.board-creator-colors {
+  padding: 0 16px 16px;
+}
+
+.board-creator-colors h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.board-creator-color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.board-creator-color-option {
+  width: 40px;
+  height: 32px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.board-creator-color-option:hover {
+  transform: scale(1.05);
+}
+
+.board-creator-color-option.selected {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #0079bf;
+}
+
+.board-creator-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.board-creator-submit {
+  background-color: #0079bf;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.board-creator-submit:disabled {
+  background-color: #dfe1e6;
+  color: #a5adba;
+  cursor: not-allowed;
+}
+
+.board-creator-cancel {
+  background-color: rgba(9, 30, 66, 0.04);
+  color: #172b4d;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
