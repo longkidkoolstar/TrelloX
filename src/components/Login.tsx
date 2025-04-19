@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { signInUser } from '../firebase/auth';
+import GoogleSignInButton from './GoogleSignInButton';
 import './Login.css';
 
 interface LoginProps {
@@ -32,9 +33,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSignup }) => {
     <div className="login-container">
       <div className="login-form">
         <h2>Sign In to TrelloX</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
+        <GoogleSignInButton
+          onSuccess={onLogin}
+          isLoading={isLoading}
+        />
+
+        <div className="separator">
+          <span>or</span>
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -46,7 +56,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSignup }) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -57,20 +67,20 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSignup }) => {
               required
             />
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="login-button"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Signing In...' : 'Sign In with Email'}
           </button>
         </form>
-        
+
         <div className="switch-form">
           Don't have an account?{' '}
-          <button 
-            className="switch-button" 
+          <button
+            className="switch-button"
             onClick={onSwitchToSignup}
             disabled={isLoading}
           >

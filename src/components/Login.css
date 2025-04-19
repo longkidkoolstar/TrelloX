@@ -93,3 +93,23 @@
   color: #a5adba;
   cursor: not-allowed;
 }
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #dfe1e6;
+}
+
+.separator span {
+  padding: 0 10px;
+  color: #6b778c;
+  font-size: 14px;
+}

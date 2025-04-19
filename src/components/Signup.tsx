@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { registerUser } from '../firebase/auth';
+import GoogleSignInButton from './GoogleSignInButton';
 import './Login.css'; // Reuse the same styles
 
 interface SignupProps {
@@ -47,9 +48,18 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onSwitchToLogin }) => {
     <div className="login-container">
       <div className="login-form">
         <h2>Create a TrelloX Account</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
+        <GoogleSignInButton
+          onSuccess={onSignup}
+          isLoading={isLoading}
+        />
+
+        <div className="separator">
+          <span>or</span>
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="displayName">Name</label>
@@ -61,7 +71,7 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onSwitchToLogin }) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -72,7 +82,7 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onSwitchToLogin }) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -83,7 +93,7 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onSwitchToLogin }) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
@@ -94,20 +104,20 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onSwitchToLogin }) => {
               required
             />
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="login-button"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
+            {isLoading ? 'Creating Account...' : 'Sign Up with Email'}
           </button>
         </form>
-        
+
         <div className="switch-form">
           Already have an account?{' '}
-          <button 
-            className="switch-button" 
+          <button
+            className="switch-button"
             onClick={onSwitchToLogin}
             disabled={isLoading}
           >

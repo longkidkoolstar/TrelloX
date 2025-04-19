@@ -4,7 +4,11 @@ import {
   signOut,
   updateProfile,
   User as FirebaseUser,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './config';
@@ -59,7 +63,7 @@ export const registerUser = async (email: string, password: string, displayName:
   }
 };
 
-// Sign in an existing user
+// Sign in an existing user with email and password
 export const signInUser = async (email: string, password: string): Promise<User> => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -71,6 +75,28 @@ export const signInUser = async (email: string, password: string): Promise<User>
     return userProfile;
   } catch (error) {
     console.error('Error signing in user:', error);
+    throw error;
+  }
+};
+
+// Sign in with Google
+export const signInWithGoogle = async (): Promise<User> => {
+  try {
+    const provider = new GoogleAuthProvider();
+    // Add scopes if needed
+    provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+    provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+
+    // Sign in with popup
+    const result = await signInWithPopup(auth, provider);
+    const userProfile = convertFirebaseUser(result.user);
+
+    // Save user profile to Firestore
+    await saveUserProfile(userProfile);
+
+    return userProfile;
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
     throw error;
   }
 };

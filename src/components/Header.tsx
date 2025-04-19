@@ -9,6 +9,7 @@ interface HeaderProps {
   onSelectBoard: (boardId: string) => void;
   onAddBoard: () => void;
   onDeleteBoard?: (boardId: string) => void;
+  onImportFromTrello?: () => void;
   user: User;
   onSignOut: () => void;
 }
@@ -19,6 +20,7 @@ const Header: React.FC<HeaderProps> = ({
   onSelectBoard,
   onAddBoard,
   onDeleteBoard,
+  onImportFromTrello,
   user,
   onSignOut
 }) => {
@@ -37,6 +39,11 @@ const Header: React.FC<HeaderProps> = ({
         />
       </div>
       <div className="header-user">
+        {onImportFromTrello && (
+          <button className="import-button" onClick={onImportFromTrello}>
+            Import from Trello
+          </button>
+        )}
         <span className="user-name">{user.displayName || user.email}</span>
         <button className="sign-out-button" onClick={onSignOut}>Sign Out</button>
       </div>

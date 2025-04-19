@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Board from './components/Board'
 import BoardCreator from './components/BoardCreator'
 import AuthContainer from './components/AuthContainer'
+import TrelloImport from './components/TrelloImport'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, getCurrentUser, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
@@ -14,6 +15,7 @@ function App() {
   const [boards, setBoards] = useState<BoardType[]>([])
   const [currentBoardId, setCurrentBoardId] = useState<string>('')
   const [isCreatingBoard, setIsCreatingBoard] = useState(false)
+  const [isImportingFromTrello, setIsImportingFromTrello] = useState(false)
 
   // Listen for authentication state changes
   useEffect(() => {
@@ -105,6 +107,41 @@ function App() {
     // The auth state listener will update the user state
   }
 
+  const handleImportFromTrello = () => {
+    setIsImportingFromTrello(true);
+  }
+
+  const handleImportComplete = async (importedBoards: BoardType[]) => {
+    try {
+      // Save each imported board to Firestore
+      const savedBoards: BoardType[] = [];
+
+      for (const board of importedBoards) {
+        // Create board in Firestore
+        const createdBoard = await createFirestoreBoard({
+          title: board.title,
+          backgroundColor: board.backgroundColor,
+          lists: board.lists
+        });
+
+        savedBoards.push(createdBoard);
+      }
+
+      // Update local state
+      setBoards([...boards, ...savedBoards]);
+
+      // Set the current board to the first imported board
+      if (savedBoards.length > 0) {
+        setCurrentBoardId(savedBoards[0].id);
+      }
+
+      // Close the import modal
+      setIsImportingFromTrello(false);
+    } catch (error) {
+      console.error('Error saving imported boards:', error);
+    }
+  }
+
   const handleDeleteBoard = async (boardId: string) => {
     try {
       // Delete board from Firestore
@@ -145,6 +182,7 @@ function App() {
         onSelectBoard={setCurrentBoardId}
         onAddBoard={handleAddBoard}
         onDeleteBoard={handleDeleteBoard}
+        onImportFromTrello={handleImportFromTrello}
         user={user}
         onSignOut={handleSignOut}
       />
@@ -160,6 +198,14 @@ function App() {
         <BoardCreator
           onCreateBoard={handleCreateBoard}
           onCancel={() => setIsCreatingBoard(false)}
+        />
+      )}
+
+      {isImportingFromTrello && user && (
+        <TrelloImport
+          userId={user.uid}
+          onImportComplete={handleImportComplete}
+          onCancel={() => setIsImportingFromTrello(false)}
         />
       )}
     </div>
