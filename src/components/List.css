@@ -89,6 +89,11 @@
   padding: 0 8px 8px;
 }
 
+.empty-list-drop-area {
+  flex-grow: 1;
+  min-height: 20px;
+}
+
 .add-card-input {
   width: 100%;
   border: none;

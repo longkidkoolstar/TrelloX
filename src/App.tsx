@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
 import Header from './components/Header'
-import Board from './components/Board'
+import DraggableBoard from './components/DraggableBoard'
 import BoardCreator from './components/BoardCreator'
 import AuthContainer from './components/AuthContainer'
 import TrelloImport from './components/TrelloImport'
@@ -188,7 +188,7 @@ function App() {
       />
 
       {currentBoard && (
-        <Board
+        <DraggableBoard
           board={currentBoard}
           onUpdateBoard={handleUpdateBoard}
         />
