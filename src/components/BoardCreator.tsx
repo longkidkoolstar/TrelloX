@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { Board } from '../types';
 import './BoardCreator.css';
 
 interface BoardCreatorProps {
-  onCreateBoard: (board: Board) => void;
+  onCreateBoard: (board: Omit<Board, 'id' | 'createdAt' | 'createdBy' | 'members'>) => void;
   onCancel: () => void;
 }
 
@@ -25,32 +24,31 @@ const BoardCreator: React.FC<BoardCreatorProps> = ({ onCreateBoard, onCancel }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim()) return;
-    
-    const newBoard: Board = {
-      id: `board-${uuidv4()}`,
+
+    const newBoard: Omit<Board, 'id' | 'createdAt' | 'createdBy' | 'members'> = {
       title: title.trim(),
       backgroundColor,
       lists: [
         {
-          id: `list-${uuidv4()}`,
+          id: crypto.randomUUID(),
           title: 'To Do',
           cards: []
         },
         {
-          id: `list-${uuidv4()}`,
+          id: crypto.randomUUID(),
           title: 'In Progress',
           cards: []
         },
         {
-          id: `list-${uuidv4()}`,
+          id: crypto.randomUUID(),
           title: 'Done',
           cards: []
         }
       ]
     };
-    
+
     onCreateBoard(newBoard);
   };
 
@@ -61,7 +59,7 @@ const BoardCreator: React.FC<BoardCreatorProps> = ({ onCreateBoard, onCancel }) 
           <h2>Create Board</h2>
           <button className="board-creator-close" onClick={onCancel}>&times;</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="board-creator-preview" style={{ backgroundColor }}>
             <input
@@ -73,7 +71,7 @@ const BoardCreator: React.FC<BoardCreatorProps> = ({ onCreateBoard, onCancel }) 
               autoFocus
             />
           </div>
-          
+
           <div className="board-creator-colors">
             <h3>Background</h3>
             <div className="board-creator-color-options">
@@ -88,17 +86,17 @@ const BoardCreator: React.FC<BoardCreatorProps> = ({ onCreateBoard, onCancel }) 
               ))}
             </div>
           </div>
-          
+
           <div className="board-creator-actions">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="board-creator-submit"
               disabled={!title.trim()}
             >
               Create Board
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="board-creator-cancel"
               onClick={onCancel}
             >

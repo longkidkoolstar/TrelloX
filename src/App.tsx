@@ -3,49 +3,139 @@ import './App.css'
 import Header from './components/Header'
 import Board from './components/Board'
 import BoardCreator from './components/BoardCreator'
-import { Board as BoardType } from './types'
-import { saveBoards, loadBoards } from './services/localStorage'
+import AuthContainer from './components/AuthContainer'
+import { Board as BoardType, User } from './types'
+import { onAuthStateChange, getCurrentUser, signOutUser } from './firebase/auth'
+import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
 
 function App() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const [boards, setBoards] = useState<BoardType[]>([])
   const [currentBoardId, setCurrentBoardId] = useState<string>('')
   const [isCreatingBoard, setIsCreatingBoard] = useState(false)
 
-  // Load boards from localStorage on initial render
+  // Listen for authentication state changes
   useEffect(() => {
-    const loadedBoards = loadBoards()
-    setBoards(loadedBoards)
+    const unsubscribe = onAuthStateChange((user) => {
+      setUser(user)
+      setLoading(false)
+    })
 
-    // Set the current board to the first board if available
-    if (loadedBoards.length > 0) {
-      setCurrentBoardId(loadedBoards[0].id)
-    }
+    return () => unsubscribe()
   }, [])
 
-  // Save boards to localStorage whenever they change
+  // Load boards from Firestore when user is authenticated
   useEffect(() => {
-    if (boards.length > 0) {
-      saveBoards(boards)
-    }
-  }, [boards])
+    const loadUserBoards = async () => {
+      if (user) {
+        try {
+          console.log('Loading boards for user:', user.uid);
+          const loadedBoards = await getUserBoards();
+          console.log('Loaded boards:', loadedBoards);
 
-  const handleUpdateBoard = (updatedBoard: BoardType) => {
-    setBoards(boards.map(board =>
-      board.id === updatedBoard.id ? updatedBoard : board
-    ))
+          if (loadedBoards && loadedBoards.length > 0) {
+            setBoards(loadedBoards);
+
+            // Set the current board to the first board if no board is currently selected
+            if (!currentBoardId || !loadedBoards.find(board => board.id === currentBoardId)) {
+              setCurrentBoardId(loadedBoards[0].id);
+            }
+          } else {
+            console.log('No boards found for user');
+            setBoards([]);
+            setCurrentBoardId('');
+          }
+        } catch (error) {
+          console.error('Error loading boards:', error);
+          // Don't crash the app, just show empty state
+          setBoards([]);
+          setCurrentBoardId('');
+        }
+      }
+    };
+
+    loadUserBoards();
+  }, [user])
+
+  const handleUpdateBoard = async (updatedBoard: BoardType) => {
+    try {
+      // Update board in Firestore
+      await updateFirestoreBoard(updatedBoard.id, updatedBoard)
+
+      // Update local state
+      setBoards(boards.map(board =>
+        board.id === updatedBoard.id ? updatedBoard : board
+      ))
+    } catch (error) {
+      console.error('Error updating board:', error)
+    }
   }
 
   const handleAddBoard = () => {
     setIsCreatingBoard(true)
   }
 
-  const handleCreateBoard = (newBoard: BoardType) => {
-    setBoards([...boards, newBoard])
-    setCurrentBoardId(newBoard.id)
-    setIsCreatingBoard(false)
+  const handleCreateBoard = async (newBoard: Omit<BoardType, 'id' | 'createdAt' | 'createdBy' | 'members'>) => {
+    try {
+      // Create board in Firestore
+      const createdBoard = await createFirestoreBoard(newBoard)
+
+      // Update local state
+      setBoards([...boards, createdBoard])
+      setCurrentBoardId(createdBoard.id)
+      setIsCreatingBoard(false)
+    } catch (error) {
+      console.error('Error creating board:', error)
+    }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser()
+      setBoards([])
+      setCurrentBoardId('')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
+
+  const handleAuthenticated = () => {
+    // This will be called after successful login/signup
+    // The auth state listener will update the user state
+  }
+
+  const handleDeleteBoard = async (boardId: string) => {
+    try {
+      // Delete board from Firestore
+      await deleteFirestoreBoard(boardId)
+
+      // Update local state
+      const updatedBoards = boards.filter(board => board.id !== boardId)
+      setBoards(updatedBoards)
+
+      // If the deleted board was the current board, select another board
+      if (boardId === currentBoardId) {
+        if (updatedBoards.length > 0) {
+          setCurrentBoardId(updatedBoards[0].id)
+        } else {
+          setCurrentBoardId('')
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting board:', error)
+    }
   }
 
   const currentBoard = boards.find(board => board.id === currentBoardId) || null
+
+  if (loading) {
+    return <div className="loading">Loading...</div>
+  }
+
+  if (!user) {
+    return <AuthContainer onAuthenticated={handleAuthenticated} />
+  }
 
   return (
     <div className="app">
@@ -54,6 +144,9 @@ function App() {
         currentBoardId={currentBoardId}
         onSelectBoard={setCurrentBoardId}
         onAddBoard={handleAddBoard}
+        onDeleteBoard={handleDeleteBoard}
+        user={user}
+        onSignOut={handleSignOut}
       />
 
       {currentBoard && (

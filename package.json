@@ -15,9 +15,11 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/uuid": "^10.0.0",
+    "firebase": "^11.6.0",
     "react": "^19.0.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^19.0.0",
+    "react-firebase-hooks": "^5.1.1",
     "react-sortablejs": "^6.1.4",
     "sortablejs": "^1.15.6",
     "uuid": "^11.1.0"

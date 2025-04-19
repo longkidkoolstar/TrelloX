@@ -1,5 +1,5 @@
 import React from 'react';
-import { Board } from '../types';
+import { Board, User } from '../types';
 import BoardSelector from './BoardSelector';
 import './Header.css';
 
@@ -8,13 +8,19 @@ interface HeaderProps {
   currentBoardId: string;
   onSelectBoard: (boardId: string) => void;
   onAddBoard: () => void;
+  onDeleteBoard?: (boardId: string) => void;
+  user: User;
+  onSignOut: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   boards,
   currentBoardId,
   onSelectBoard,
-  onAddBoard
+  onAddBoard,
+  onDeleteBoard,
+  user,
+  onSignOut
 }) => {
   return (
     <header className="header">
@@ -27,7 +33,12 @@ const Header: React.FC<HeaderProps> = ({
           currentBoardId={currentBoardId}
           onSelectBoard={onSelectBoard}
           onAddBoard={onAddBoard}
+          onDeleteBoard={onDeleteBoard}
         />
+      </div>
+      <div className="header-user">
+        <span className="user-name">{user.displayName || user.email}</span>
+        <button className="sign-out-button" onClick={onSignOut}>Sign Out</button>
       </div>
     </header>
   );

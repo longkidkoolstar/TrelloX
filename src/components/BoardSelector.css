@@ -54,9 +54,16 @@
 .board-selector-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 16px;
-  cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.board-selector-board-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  cursor: pointer;
 }
 
 .board-selector-item:hover {
@@ -103,4 +110,34 @@
   right: 0;
   bottom: 0;
   z-index: 90;
+}
+
+.board-selector-delete-btn {
+  background: none;
+  border: none;
+  color: #6b778c;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 5px;
+  margin-left: 8px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.board-selector-item:hover .board-selector-delete-btn {
+  visibility: visible;
+  opacity: 1;
+}
+
+.board-selector-delete-btn:hover {
+  background-color: rgba(223, 225, 230, 0.8);
+  color: #172b4d;
 }
