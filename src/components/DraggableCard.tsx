@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { ItemTypes, CardDragItem } from './DragTypes';
-import { Card as CardType } from '../types';
+import { Card as CardType, Checklist } from '../types';
 import CardModal from './CardModal';
+import { useModalContext } from '../context/ModalContext';
 import './Card.css';
 
 interface DraggableCardProps {
@@ -26,6 +27,7 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { isModalOpen: isAnyModalOpen, openModal, closeModal } = useModalContext();
 
   const formatDueDate = (dateString?: string) => {
     if (!dateString) return null;
@@ -55,6 +57,7 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
       listId,
       content: card.content
     } as CardDragItem,
+    canDrag: !isAnyModalOpen, // Disable dragging when any modal is open
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -70,7 +73,10 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
   // Configure drop
   const [, drop] = useDrop({
     accept: ItemTypes.CARD,
+    canDrop: () => !isAnyModalOpen, // Disable dropping when any modal is open
     hover: (item: CardDragItem, monitor) => {
+      // If a modal is open, don't allow hover interactions
+      if (isAnyModalOpen) return;
       if (!ref.current) {
         return;
       }
@@ -136,7 +142,10 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
           cursor: isDragging ? 'grabbing' : 'grab',
           visibility: isDragging ? 'hidden' : 'visible'
         }}
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => {
+          setIsModalOpen(true);
+          openModal();
+        }}
       >
         {card.labels.length > 0 && (
           <div className="card-labels">
@@ -176,6 +185,19 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
               <span className="card-badge-text">{card.attachments.length}</span>
             </div>
           )}
+
+          {card.checklists && card.checklists.length > 0 && (
+            <div className="card-badge">
+              <span className="card-badge-icon">✓</span>
+              <span className="card-badge-text">
+                {card.checklists.reduce((count, checklist) => {
+                  const completed = checklist.items.filter(item => item.state === 'complete').length;
+                  const total = checklist.items.length;
+                  return `${count + completed}/${count + total}`;
+                }, 0)}
+              </span>
+            </div>
+          )}
         </div>
 
         <button
@@ -194,7 +216,10 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
           card={card}
           listId={listId}
           listTitle={listTitle}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            closeModal();
+          }}
           onUpdateCard={onUpdateCard}
         />
       )}

@@ -1,4 +1,4 @@
-import { Board, List, Card, Label } from '../types';
+import { Board, List, Card, Label, Checklist, CheckItem } from '../types';
 
 // Trello API types
 interface TrelloBoard {
@@ -56,6 +56,21 @@ interface TrelloAttachment {
   name: string;
   url: string;
   date: string;
+}
+
+interface TrelloChecklist {
+  id: string;
+  name: string;
+  idCard: string;
+  pos: number;
+  checkItems: TrelloCheckItem[];
+}
+
+interface TrelloCheckItem {
+  id: string;
+  name: string;
+  state: 'complete' | 'incomplete';
+  pos: number;
 }
 
 // Fetch boards from Trello
@@ -166,6 +181,29 @@ export const fetchTrelloAttachments = async (
   }
 };
 
+// Fetch checklists for a card
+export const fetchTrelloChecklists = async (
+  cardId: string,
+  apiKey: string,
+  token: string
+): Promise<TrelloChecklist[]> => {
+  try {
+    const response = await fetch(
+      `https://api.trello.com/1/cards/${cardId}/checklists?key=${apiKey}&token=${token}&fields=name,pos&checkItems=all&checkItem_fields=name,state,pos`
+    );
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch checklists for card ${cardId}: ${response.statusText}`);
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching Trello checklists:', error);
+    return []; // Return empty array instead of throwing
+  }
+};
+
 // Convert Trello color to TrelloX color
 const convertTrelloColor = (trelloColor: string): string => {
   const colorMap: Record<string, string> = {
@@ -215,6 +253,9 @@ export const convertTrelloBoard = async (
             // Fetch attachments for this card
             const trelloAttachments = await fetchTrelloAttachments(trelloCard.id, apiKey, token);
 
+            // Fetch checklists for this card
+            const trelloChecklists = await fetchTrelloChecklists(trelloCard.id, apiKey, token);
+
             // Convert Trello labels to TrelloX labels
             const labels = Array.isArray(trelloCard.labels) ? trelloCard.labels.map(label => ({
               id: label.id,
@@ -254,6 +295,29 @@ export const convertTrelloBoard = async (
               }
             }).filter(Boolean) : [];
 
+            // Convert Trello checklists to TrelloX checklists
+            const checklists = Array.isArray(trelloChecklists) ? trelloChecklists.map(checklist => {
+              try {
+                // Convert checklist items
+                const items = Array.isArray(checklist.checkItems) ? checklist.checkItems.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                  state: item.state,
+                  pos: item.pos
+                })).sort((a, b) => a.pos - b.pos) : [];
+
+                return {
+                  id: checklist.id,
+                  title: checklist.name,
+                  items,
+                  pos: checklist.pos
+                };
+              } catch (err) {
+                console.warn('Error processing checklist:', err);
+                return null;
+              }
+            }).filter(Boolean).sort((a, b) => a.pos - b.pos) : [];
+
             return {
               id: trelloCard.id,
               content: trelloCard.name,
@@ -262,6 +326,7 @@ export const convertTrelloBoard = async (
               dueDate: trelloCard.due,
               comments,
               attachments,
+              checklists,
               createdAt: new Date().toISOString(),
               createdBy: userId,
               assignedTo: trelloCard.idMembers || []
@@ -276,6 +341,7 @@ export const convertTrelloBoard = async (
               labels: [],
               comments: [],
               attachments: [],
+              checklists: [],
               createdAt: new Date().toISOString(),
               createdBy: userId,
               assignedTo: []

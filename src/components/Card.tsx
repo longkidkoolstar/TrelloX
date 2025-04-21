@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card as CardType, Label } from '../types';
+import { Card as CardType, Label, Checklist } from '../types';
 import CardModal from './CardModal';
+import { useModalContext } from '../context/ModalContext';
 import './Card.css';
 
 interface CardProps {
@@ -23,6 +24,7 @@ const Card: React.FC<CardProps> = ({
   onUpdateCard
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isModalOpen: isAnyModalOpen, openModal, closeModal } = useModalContext();
 
   const formatDueDate = (dateString?: string) => {
     if (!dateString) return null;
@@ -51,7 +53,8 @@ const Card: React.FC<CardProps> = ({
     isDragging
   } = useSortable({
     id: card.id,
-    data: { type: 'card', card, listId }
+    data: { type: 'card', card, listId },
+    disabled: isAnyModalOpen // Disable dragging when any modal is open
   });
 
   const style = {
@@ -68,7 +71,10 @@ const Card: React.FC<CardProps> = ({
         style={style}
         {...attributes}
         {...listeners}
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => {
+          setIsModalOpen(true);
+          openModal();
+        }}
       >
         {card.labels.length > 0 && (
           <div className="card-labels">
@@ -108,6 +114,19 @@ const Card: React.FC<CardProps> = ({
               <span className="card-badge-text">{card.attachments.length}</span>
             </div>
           )}
+
+          {card.checklists && card.checklists.length > 0 && (
+            <div className="card-badge">
+              <span className="card-badge-icon">✓</span>
+              <span className="card-badge-text">
+                {card.checklists.reduce((count, checklist) => {
+                  const completed = checklist.items.filter(item => item.state === 'complete').length;
+                  const total = checklist.items.length;
+                  return `${count + completed}/${count + total}`;
+                }, 0)}
+              </span>
+            </div>
+          )}
         </div>
 
         <button
@@ -126,7 +145,10 @@ const Card: React.FC<CardProps> = ({
           card={card}
           listId={listId}
           listTitle={listTitle}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            closeModal();
+          }}
           onUpdateCard={onUpdateCard}
         />
       )}

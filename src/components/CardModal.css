@@ -433,3 +433,144 @@
   display: flex;
   gap: 8px;
 }
+
+/* Checklists */
+.card-modal-checklists {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-modal-checklist {
+  background-color: white;
+  border-radius: 3px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-modal-checklist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-modal-checklist-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.card-modal-checklist-delete {
+  background-color: rgba(9, 30, 66, 0.04);
+  color: #172b4d;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.card-modal-checklist-delete:hover {
+  background-color: rgba(9, 30, 66, 0.08);
+}
+
+.card-modal-checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.card-modal-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.card-modal-checklist-item-checkbox {
+  cursor: pointer;
+}
+
+.card-modal-checklist-item-text {
+  flex: 1;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.card-modal-checklist-item-text.completed {
+  text-decoration: line-through;
+  color: #5e6c84;
+}
+
+.card-modal-checklist-item-delete {
+  background: none;
+  border: none;
+  color: #6b778c;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.5;
+  visibility: hidden;
+}
+
+.card-modal-checklist-item:hover .card-modal-checklist-item-delete {
+  visibility: visible;
+}
+
+.card-modal-checklist-item-delete:hover {
+  opacity: 1;
+}
+
+.card-modal-checklist-item-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-modal-checklist-item-input {
+  border: 1px solid #dfe1e6;
+  border-radius: 3px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.card-modal-checklist-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-modal-checklist-add-item {
+  background-color: rgba(9, 30, 66, 0.04);
+  color: #172b4d;
+  border: none;
+  border-radius: 3px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+
+.card-modal-checklist-add-item:hover {
+  background-color: rgba(9, 30, 66, 0.08);
+}
+
+.card-modal-checklist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-modal-checklist-input {
+  border: 1px solid #dfe1e6;
+  border-radius: 3px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.card-modal-checklist-actions {
+  display: flex;
+  gap: 8px;
+}

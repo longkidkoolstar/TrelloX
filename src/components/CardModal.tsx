@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Card as CardType, Label, LabelColor, Comment, Attachment } from '../types';
+import { Card as CardType, Label, LabelColor, Comment, Attachment, Checklist, CheckItem } from '../types';
 import './CardModal.css';
 
 interface CardModalProps {
@@ -38,6 +38,10 @@ const CardModal: React.FC<CardModalProps> = ({
   const [newAttachmentName, setNewAttachmentName] = useState('');
   const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
   const [showAttachmentForm, setShowAttachmentForm] = useState(false);
+  const [showChecklistForm, setShowChecklistForm] = useState(false);
+  const [newChecklistTitle, setNewChecklistTitle] = useState('');
+  const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
+  const [newCheckItemText, setNewCheckItemText] = useState('');
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.target.value);
@@ -63,7 +67,7 @@ const CardModal: React.FC<CardModalProps> = ({
 
     const updatedLabels = [...card.labels, newLabel];
     onUpdateCard(listId, card.id, { labels: updatedLabels });
-    
+
     setNewLabelText('');
     setShowLabelPicker(false);
   };
@@ -85,7 +89,7 @@ const CardModal: React.FC<CardModalProps> = ({
 
     const updatedComments = [...card.comments, newComment];
     onUpdateCard(listId, card.id, { comments: updatedComments });
-    
+
     setNewCommentText('');
   };
 
@@ -106,7 +110,7 @@ const CardModal: React.FC<CardModalProps> = ({
 
     const updatedAttachments = [...card.attachments, newAttachment];
     onUpdateCard(listId, card.id, { attachments: updatedAttachments });
-    
+
     setNewAttachmentName('');
     setNewAttachmentUrl('');
     setShowAttachmentForm(false);
@@ -115,6 +119,96 @@ const CardModal: React.FC<CardModalProps> = ({
   const handleDeleteAttachment = (attachmentId: string) => {
     const updatedAttachments = card.attachments.filter(attachment => attachment.id !== attachmentId);
     onUpdateCard(listId, card.id, { attachments: updatedAttachments });
+  };
+
+  const handleAddChecklist = () => {
+    if (!newChecklistTitle.trim()) return;
+
+    const newChecklist: Checklist = {
+      id: uuidv4(),
+      title: newChecklistTitle,
+      items: [],
+      pos: (card.checklists?.length || 0) + 1
+    };
+
+    const updatedChecklists = [...(card.checklists || []), newChecklist];
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+
+    setNewChecklistTitle('');
+    setShowChecklistForm(false);
+    setEditingChecklistId(newChecklist.id);
+  };
+
+  const handleDeleteChecklist = (checklistId: string) => {
+    const updatedChecklists = card.checklists?.filter(checklist => checklist.id !== checklistId) || [];
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+  };
+
+  const handleAddCheckItem = (checklistId: string) => {
+    if (!newCheckItemText.trim()) return;
+
+    const newCheckItem: CheckItem = {
+      id: uuidv4(),
+      name: newCheckItemText,
+      state: 'incomplete',
+      pos: 0
+    };
+
+    const updatedChecklists = card.checklists?.map(checklist => {
+      if (checklist.id === checklistId) {
+        // Add the new item and sort by position
+        const updatedItems = [...checklist.items, newCheckItem]
+          .map((item, index) => ({ ...item, pos: item.id === newCheckItem.id ? checklist.items.length : item.pos }))
+          .sort((a, b) => a.pos - b.pos);
+
+        return {
+          ...checklist,
+          items: updatedItems
+        };
+      }
+      return checklist;
+    }) || [];
+
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+    setNewCheckItemText('');
+  };
+
+  const handleToggleCheckItem = (checklistId: string, checkItemId: string) => {
+    const updatedChecklists = card.checklists?.map(checklist => {
+      if (checklist.id === checklistId) {
+        const updatedItems = checklist.items.map(item => {
+          if (item.id === checkItemId) {
+            return {
+              ...item,
+              state: item.state === 'complete' ? 'incomplete' : 'complete'
+            };
+          }
+          return item;
+        });
+
+        return {
+          ...checklist,
+          items: updatedItems
+        };
+      }
+      return checklist;
+    }) || [];
+
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+  };
+
+  const handleDeleteCheckItem = (checklistId: string, checkItemId: string) => {
+    const updatedChecklists = card.checklists?.map(checklist => {
+      if (checklist.id === checklistId) {
+        return {
+          ...checklist,
+          items: checklist.items.filter(item => item.id !== checkItemId)
+        };
+      }
+      return checklist;
+    }) || [];
+
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
   };
 
   const formatDate = (dateString: string) => {
@@ -126,7 +220,7 @@ const CardModal: React.FC<CardModalProps> = ({
     <div className="card-modal-overlay" onClick={onClose}>
       <div className="card-modal" onClick={(e) => e.stopPropagation()}>
         <button className="card-modal-close" onClick={onClose}>&times;</button>
-        
+
         <div className="card-modal-header">
           <textarea
             className="card-modal-title"
@@ -136,7 +230,7 @@ const CardModal: React.FC<CardModalProps> = ({
           />
           <div className="card-modal-list">in list <strong>{listTitle}</strong></div>
         </div>
-        
+
         <div className="card-modal-content">
           <div className="card-modal-main">
             {card.labels.length > 0 && (
@@ -144,12 +238,12 @@ const CardModal: React.FC<CardModalProps> = ({
                 <h3 className="card-modal-section-title">Labels</h3>
                 <div className="card-modal-labels">
                   {card.labels.map(label => (
-                    <div 
-                      key={label.id} 
+                    <div
+                      key={label.id}
                       className={`card-modal-label card-label-${label.color}`}
                     >
                       <span>{label.text}</span>
-                      <button 
+                      <button
                         className="card-modal-label-remove"
                         onClick={() => handleRemoveLabel(label.id)}
                       >
@@ -160,20 +254,20 @@ const CardModal: React.FC<CardModalProps> = ({
                 </div>
               </div>
             )}
-            
+
             {dueDate && (
               <div className="card-modal-section">
                 <h3 className="card-modal-section-title">Due Date</h3>
                 <div className="card-modal-due-date">
-                  <input 
-                    type="datetime-local" 
+                  <input
+                    type="datetime-local"
                     value={dueDate}
                     onChange={handleDueDateChange}
                   />
                 </div>
               </div>
             )}
-            
+
             <div className="card-modal-section">
               <h3 className="card-modal-section-title">Description</h3>
               {isEditingDescription ? (
@@ -185,13 +279,13 @@ const CardModal: React.FC<CardModalProps> = ({
                     placeholder="Add a more detailed description..."
                   />
                   <div className="card-modal-description-actions">
-                    <button 
+                    <button
                       className="card-modal-save-button"
                       onClick={handleDescriptionSave}
                     >
                       Save
                     </button>
-                    <button 
+                    <button
                       className="card-modal-cancel-button"
                       onClick={() => {
                         setDescription(card.description || '');
@@ -203,7 +297,7 @@ const CardModal: React.FC<CardModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <div 
+                <div
                   className="card-modal-description-display"
                   onClick={() => setIsEditingDescription(true)}
                 >
@@ -215,7 +309,7 @@ const CardModal: React.FC<CardModalProps> = ({
                 </div>
               )}
             </div>
-            
+
             {card.attachments.length > 0 && (
               <div className="card-modal-section">
                 <h3 className="card-modal-section-title">Attachments</h3>
@@ -224,9 +318,9 @@ const CardModal: React.FC<CardModalProps> = ({
                     <div key={attachment.id} className="card-modal-attachment">
                       <div className="card-modal-attachment-icon">📎</div>
                       <div className="card-modal-attachment-details">
-                        <a 
-                          href={attachment.url} 
-                          target="_blank" 
+                        <a
+                          href={attachment.url}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="card-modal-attachment-name"
                         >
@@ -236,7 +330,7 @@ const CardModal: React.FC<CardModalProps> = ({
                           Added {formatDate(attachment.createdAt)}
                         </div>
                       </div>
-                      <button 
+                      <button
                         className="card-modal-attachment-delete"
                         onClick={() => handleDeleteAttachment(attachment.id)}
                       >
@@ -247,7 +341,7 @@ const CardModal: React.FC<CardModalProps> = ({
                 </div>
               </div>
             )}
-            
+
             {showAttachmentForm && (
               <div className="card-modal-section">
                 <h3 className="card-modal-section-title">Add Attachment</h3>
@@ -267,14 +361,14 @@ const CardModal: React.FC<CardModalProps> = ({
                     className="card-modal-attachment-input"
                   />
                   <div className="card-modal-attachment-actions">
-                    <button 
+                    <button
                       className="card-modal-save-button"
                       onClick={handleAddAttachment}
                       disabled={!newAttachmentName.trim() || !newAttachmentUrl.trim()}
                     >
                       Add
                     </button>
-                    <button 
+                    <button
                       className="card-modal-cancel-button"
                       onClick={() => {
                         setNewAttachmentName('');
@@ -288,7 +382,122 @@ const CardModal: React.FC<CardModalProps> = ({
                 </div>
               </div>
             )}
-            
+
+            {card.checklists && card.checklists.length > 0 && (
+              <div className="card-modal-section">
+                <h3 className="card-modal-section-title">Checklists</h3>
+                <div className="card-modal-checklists">
+                  {card.checklists.map(checklist => (
+                    <div key={checklist.id} className="card-modal-checklist">
+                      <div className="card-modal-checklist-header">
+                        <h4 className="card-modal-checklist-title">{checklist.title}</h4>
+                        <button
+                          className="card-modal-checklist-delete"
+                          onClick={() => handleDeleteChecklist(checklist.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      <div className="card-modal-checklist-items">
+                        {checklist.items.map(item => (
+                          <div key={item.id} className="card-modal-checklist-item">
+                            <input
+                              type="checkbox"
+                              checked={item.state === 'complete'}
+                              onChange={() => handleToggleCheckItem(checklist.id, item.id)}
+                              className="card-modal-checklist-item-checkbox"
+                            />
+                            <span className={`card-modal-checklist-item-text ${item.state === 'complete' ? 'completed' : ''}`}>
+                              {item.name}
+                            </span>
+                            <button
+                              className="card-modal-checklist-item-delete"
+                              onClick={() => handleDeleteCheckItem(checklist.id, item.id)}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {editingChecklistId === checklist.id && (
+                        <div className="card-modal-checklist-item-form">
+                          <input
+                            type="text"
+                            placeholder="Add an item"
+                            value={newCheckItemText}
+                            onChange={(e) => setNewCheckItemText(e.target.value)}
+                            className="card-modal-checklist-item-input"
+                          />
+                          <div className="card-modal-checklist-item-actions">
+                            <button
+                              className="card-modal-save-button"
+                              onClick={() => handleAddCheckItem(checklist.id)}
+                              disabled={!newCheckItemText.trim()}
+                            >
+                              Add
+                            </button>
+                            <button
+                              className="card-modal-cancel-button"
+                              onClick={() => {
+                                setNewCheckItemText('');
+                                setEditingChecklistId(null);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {editingChecklistId !== checklist.id && (
+                        <button
+                          className="card-modal-checklist-add-item"
+                          onClick={() => setEditingChecklistId(checklist.id)}
+                        >
+                          Add an item
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showChecklistForm && (
+              <div className="card-modal-section">
+                <h3 className="card-modal-section-title">Add Checklist</h3>
+                <div className="card-modal-checklist-form">
+                  <input
+                    type="text"
+                    placeholder="Checklist title"
+                    value={newChecklistTitle}
+                    onChange={(e) => setNewChecklistTitle(e.target.value)}
+                    className="card-modal-checklist-input"
+                  />
+                  <div className="card-modal-checklist-actions">
+                    <button
+                      className="card-modal-save-button"
+                      onClick={handleAddChecklist}
+                      disabled={!newChecklistTitle.trim()}
+                    >
+                      Add
+                    </button>
+                    <button
+                      className="card-modal-cancel-button"
+                      onClick={() => {
+                        setNewChecklistTitle('');
+                        setShowChecklistForm(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {card.comments.length > 0 && (
               <div className="card-modal-section">
                 <h3 className="card-modal-section-title">Comments</h3>
@@ -298,7 +507,7 @@ const CardModal: React.FC<CardModalProps> = ({
                       <div className="card-modal-comment-header">
                         <div className="card-modal-comment-author">{comment.author}</div>
                         <div className="card-modal-comment-date">{formatDate(comment.createdAt)}</div>
-                        <button 
+                        <button
                           className="card-modal-comment-delete"
                           onClick={() => handleDeleteComment(comment.id)}
                         >
@@ -311,7 +520,7 @@ const CardModal: React.FC<CardModalProps> = ({
                 </div>
               </div>
             )}
-            
+
             <div className="card-modal-section">
               <h3 className="card-modal-section-title">Add Comment</h3>
               <div className="card-modal-comment-form">
@@ -321,7 +530,7 @@ const CardModal: React.FC<CardModalProps> = ({
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
                 />
-                <button 
+                <button
                   className="card-modal-save-button"
                   onClick={handleAddComment}
                   disabled={!newCommentText.trim()}
@@ -331,34 +540,34 @@ const CardModal: React.FC<CardModalProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="card-modal-sidebar">
             <h3 className="card-modal-sidebar-title">Add to Card</h3>
-            
+
             <div className="card-modal-sidebar-buttons">
-              <button 
+              <button
                 className="card-modal-sidebar-button"
                 onClick={() => setShowLabelPicker(!showLabelPicker)}
               >
                 <span className="card-modal-sidebar-button-icon">🏷️</span>
                 <span className="card-modal-sidebar-button-text">Labels</span>
               </button>
-              
+
               {showLabelPicker && (
                 <div className="card-modal-label-picker">
                   <div className="card-modal-label-picker-header">
                     <h4>Labels</h4>
-                    <button 
+                    <button
                       className="card-modal-label-picker-close"
                       onClick={() => setShowLabelPicker(false)}
                     >
                       &times;
                     </button>
                   </div>
-                  
+
                   <div className="card-modal-label-colors">
                     {LABEL_COLORS.map(({ color, name }) => (
-                      <div 
+                      <div
                         key={color}
                         className={`card-modal-label-color card-label-${color} ${selectedLabelColor === color ? 'selected' : ''}`}
                         onClick={() => setSelectedLabelColor(color)}
@@ -368,7 +577,7 @@ const CardModal: React.FC<CardModalProps> = ({
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="card-modal-label-form">
                     <input
                       type="text"
@@ -377,7 +586,7 @@ const CardModal: React.FC<CardModalProps> = ({
                       onChange={(e) => setNewLabelText(e.target.value)}
                       className="card-modal-label-input"
                     />
-                    <button 
+                    <button
                       className="card-modal-save-button"
                       onClick={handleAddLabel}
                     >
@@ -386,8 +595,8 @@ const CardModal: React.FC<CardModalProps> = ({
                   </div>
                 </div>
               )}
-              
-              <button 
+
+              <button
                 className="card-modal-sidebar-button"
                 onClick={() => {
                   if (!dueDate) {
@@ -403,13 +612,21 @@ const CardModal: React.FC<CardModalProps> = ({
                 <span className="card-modal-sidebar-button-icon">🕒</span>
                 <span className="card-modal-sidebar-button-text">Due Date</span>
               </button>
-              
-              <button 
+
+              <button
                 className="card-modal-sidebar-button"
                 onClick={() => setShowAttachmentForm(!showAttachmentForm)}
               >
                 <span className="card-modal-sidebar-button-icon">📎</span>
                 <span className="card-modal-sidebar-button-text">Attachment</span>
+              </button>
+
+              <button
+                className="card-modal-sidebar-button"
+                onClick={() => setShowChecklistForm(!showChecklistForm)}
+              >
+                <span className="card-modal-sidebar-button-icon">✓</span>
+                <span className="card-modal-sidebar-button-text">Checklist</span>
               </button>
             </div>
           </div>

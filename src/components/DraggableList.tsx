@@ -3,6 +3,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { ItemTypes, ListDragItem, CardDragItem } from './DragTypes';
 import { List as ListType, Card as CardType } from '../types';
 import DraggableCard from './DraggableCard';
+import { useModalContext } from '../context/ModalContext';
 import './List.css';
 
 interface EmptyListDropAreaProps {
@@ -12,10 +13,14 @@ interface EmptyListDropAreaProps {
 
 const EmptyListDropArea: React.FC<EmptyListDropAreaProps> = ({ listId, moveCard }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { isModalOpen } = useModalContext();
 
   const [, drop] = useDrop({
     accept: ItemTypes.CARD,
+    canDrop: () => !isModalOpen, // Disable dropping when any modal is open
     hover: (item: CardDragItem, monitor) => {
+      // If a modal is open, don't allow hover interactions
+      if (isModalOpen) return;
       if (!ref.current) {
         return;
       }
@@ -81,6 +86,7 @@ const DraggableList: React.FC<DraggableListProps> = ({
   const [editedTitle, setEditedTitle] = useState(list.title);
   const [isAddingCard, setIsAddingCard] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { isModalOpen } = useModalContext();
 
   const handleAddCard = () => {
     if (newCardContent.trim()) {
@@ -118,6 +124,7 @@ const DraggableList: React.FC<DraggableListProps> = ({
       index,
       title: list.title
     } as ListDragItem,
+    canDrag: !isModalOpen, // Disable dragging when any modal is open
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -126,7 +133,10 @@ const DraggableList: React.FC<DraggableListProps> = ({
   // Configure drop for list reordering
   const [, drop] = useDrop({
     accept: ItemTypes.LIST,
+    canDrop: () => !isModalOpen, // Disable dropping when any modal is open
     hover: (item: ListDragItem, monitor) => {
+      // If a modal is open, don't allow hover interactions
+      if (isModalOpen) return;
       if (!ref.current) {
         return;
       }

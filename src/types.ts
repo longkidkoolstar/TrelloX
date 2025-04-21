@@ -30,6 +30,20 @@ export interface Attachment {
   uploadedBy: string;
 }
 
+export interface CheckItem {
+  id: string;
+  name: string;
+  state: 'complete' | 'incomplete';
+  pos: number;
+}
+
+export interface Checklist {
+  id: string;
+  title: string;
+  items: CheckItem[];
+  pos: number;
+}
+
 export interface Card {
   id: string;
   content: string;
@@ -38,6 +52,7 @@ export interface Card {
   dueDate?: string;
   comments: Comment[];
   attachments: Attachment[];
+  checklists: Checklist[];
   createdAt: string;
   createdBy: string;
   assignedTo?: string[];
