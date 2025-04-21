@@ -22,7 +22,7 @@ interface ModalProviderProps {
 
 export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalCount, setModalCount] = useState(0);
+  const [, setModalCount] = useState(0);
 
   const openModal = () => {
     setModalCount(prev => prev + 1);
