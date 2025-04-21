@@ -9,12 +9,10 @@ import {
   query,
   where,
   serverTimestamp,
-  Timestamp,
-  DocumentReference,
-  DocumentData
+  Timestamp
 } from 'firebase/firestore';
 import { db } from './config';
-import { Board, List, Card, User, FirestoreTimestamp } from '../types';
+import { Board, List, Card, FirestoreTimestamp } from '../types';
 import { getCurrentUser } from './auth';
 
 // Convert Firestore timestamp to string
@@ -348,7 +346,6 @@ export const moveCard = async (
   boardId: string,
   sourceListId: string,
   destinationListId: string,
-  cardId: string,
   sourceIndex: number,
   destinationIndex: number
 ): Promise<void> => {

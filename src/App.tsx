@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import Header from './components/Header'
 import DraggableBoard from './components/DraggableBoard'
@@ -6,7 +6,7 @@ import BoardCreator from './components/BoardCreator'
 import AuthContainer from './components/AuthContainer'
 import TrelloImport from './components/TrelloImport'
 import { Board as BoardType, User } from './types'
-import { onAuthStateChange, getCurrentUser, signOutUser } from './firebase/auth'
+import { onAuthStateChange, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
 
 function App() {

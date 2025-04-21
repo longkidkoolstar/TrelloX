@@ -6,9 +6,7 @@ import {
   User as FirebaseUser,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './config';
