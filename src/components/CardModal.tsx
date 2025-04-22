@@ -85,6 +85,7 @@ const CardModal: React.FC<CardModalProps> = ({
       text: newCommentText,
       createdAt: new Date().toISOString(),
       author: 'You',
+      authorId: ''
     };
 
     const updatedComments = [...card.comments, newComment];
@@ -106,6 +107,7 @@ const CardModal: React.FC<CardModalProps> = ({
       name: newAttachmentName,
       url: newAttachmentUrl,
       createdAt: new Date().toISOString(),
+      uploadedBy: ''
     };
 
     const updatedAttachments = [...card.attachments, newAttachment];
@@ -158,7 +160,7 @@ const CardModal: React.FC<CardModalProps> = ({
       if (checklist.id === checklistId) {
         // Add the new item and sort by position
         const updatedItems = [...checklist.items, newCheckItem]
-          .map((item, index) => ({ ...item, pos: item.id === newCheckItem.id ? checklist.items.length : item.pos }))
+          .map((item, _index) => ({ ...item, pos: item.id === newCheckItem.id ? checklist.items.length : item.pos }))
           .sort((a, b) => a.pos - b.pos);
 
         return {
@@ -194,7 +196,7 @@ const CardModal: React.FC<CardModalProps> = ({
       return checklist;
     }) || [];
 
-    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists as Checklist[] });
   };
 
   const handleDeleteCheckItem = (checklistId: string, checkItemId: string) => {
@@ -637,3 +639,4 @@ const CardModal: React.FC<CardModalProps> = ({
 };
 
 export default CardModal;
+

@@ -96,8 +96,8 @@ const TrelloImport: React.FC<TrelloImportProps> = ({ userId, onImportComplete, o
         console.log(`Importing board ${i + 1}/${selectedBoards.length}: ${board.name}`);
 
         // Fetch lists and cards for the board
-        let lists = [];
-        let cards = [];
+        let lists: string | any[] = [];
+        let cards: string | any[] = [];
 
         try {
           lists = await fetchTrelloLists(board.id, apiKey, token);

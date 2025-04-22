@@ -18,7 +18,7 @@ const EmptyListDropArea: React.FC<EmptyListDropAreaProps> = ({ listId, moveCard 
   const [, drop] = useDrop({
     accept: ItemTypes.CARD,
     canDrop: () => !isModalOpen, // Disable dropping when any modal is open
-    hover: (item: CardDragItem, monitor) => {
+    hover: (item: CardDragItem, _monitor) => {
       // If a modal is open, don't allow hover interactions
       if (isModalOpen) return;
       if (!ref.current) {
@@ -116,7 +116,7 @@ const DraggableList: React.FC<DraggableListProps> = ({
   };
 
   // Configure drag
-  const [{ isDragging }, drag, dragPreview] = useDrag({
+  const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.LIST,
     item: {
       type: ItemTypes.LIST,

@@ -116,13 +116,122 @@ function App() {
       // Save each imported board to Firestore
       const savedBoards: BoardType[] = [];
 
+      // Helper function to recursively remove undefined values and handle circular references
+      const removeUndefined = (obj: any, seen = new WeakMap()): any => {
+        // Handle null or undefined
+        if (obj === null || obj === undefined) {
+          return null;
+        }
+
+        // Handle primitive types
+        if (typeof obj !== 'object') {
+          return obj;
+        }
+
+        // Handle circular references
+        if (seen.has(obj)) {
+          console.warn('Circular reference detected and removed');
+          return null;
+        }
+
+        // Add this object to seen objects
+        seen.set(obj, true);
+
+        // Handle arrays
+        if (Array.isArray(obj)) {
+          return obj.map(item => removeUndefined(item, seen));
+        }
+
+        // Handle objects
+        const result: any = {};
+        for (const key in obj) {
+          // Skip __proto__ properties
+          if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+
+          // Skip functions and symbols which aren't valid in Firestore
+          if (typeof obj[key] === 'function' || typeof obj[key] === 'symbol') continue;
+
+          const value = removeUndefined(obj[key], seen);
+          if (value !== undefined) {
+            result[key] = value;
+          }
+        }
+        return result;
+      };
+
       for (const board of importedBoards) {
-        // Create board in Firestore
-        const createdBoard = await createFirestoreBoard({
-          title: board.title,
-          backgroundColor: board.backgroundColor,
-          lists: board.lists
+        console.log('Processing board:', board.title);
+
+        // Ensure all lists have valid cards arrays and no undefined values
+        const sanitizedLists = board.lists.map(list => {
+          console.log(`Processing list: ${list.title}`);
+
+          const sanitizedCards = list.cards.map(card => {
+            console.log(`Processing card: ${card.content}`);
+
+            // Create a sanitized card with default values for all fields
+            const sanitizedCard = {
+              id: card.id,
+              content: card.content || 'Untitled Card',
+              description: card.description || '',
+              labels: Array.isArray(card.labels) ? card.labels.map(label => ({
+                id: label.id,
+                text: label.text || '',
+                color: label.color || 'blue'
+              })) : [],
+              comments: Array.isArray(card.comments) ? card.comments.map(comment => ({
+                id: comment.id,
+                text: comment.text || '',
+                createdAt: comment.createdAt || new Date().toISOString(),
+                author: comment.author || 'Unknown',
+                authorId: comment.authorId || ''
+              })) : [],
+              attachments: Array.isArray(card.attachments) ? card.attachments.map(attachment => ({
+                id: attachment.id,
+                name: attachment.name || '',
+                url: attachment.url || '',
+                createdAt: attachment.createdAt || new Date().toISOString(),
+                uploadedBy: attachment.uploadedBy || ''
+              })) : [],
+              checklists: Array.isArray(card.checklists) ? card.checklists.map(checklist => ({
+                id: checklist.id,
+                title: checklist.title || '',
+                items: Array.isArray(checklist.items) ? checklist.items.map(item => ({
+                  id: item.id,
+                  name: item.name || '',
+                  state: item.state || 'incomplete',
+                  pos: typeof item.pos === 'number' ? item.pos : 0
+                })) : [],
+                pos: typeof checklist.pos === 'number' ? checklist.pos : 0
+              })) : [],
+              createdAt: card.createdAt || new Date().toISOString(),
+              createdBy: card.createdBy || '',
+              assignedTo: Array.isArray(card.assignedTo) ? card.assignedTo : []
+            };
+
+            return removeUndefined(sanitizedCard);
+          });
+
+          return removeUndefined({
+            id: list.id,
+            title: list.title || 'Untitled List',
+            cards: sanitizedCards,
+            createdAt: list.createdAt || new Date().toISOString(),
+            createdBy: list.createdBy || ''
+          });
         });
+
+        // Create a clean board object with no undefined values
+        const cleanBoardData = removeUndefined({
+          title: board.title || 'Untitled Board',
+          backgroundColor: board.backgroundColor || '#0079BF',
+          lists: sanitizedLists
+        });
+
+        console.log('Sanitized board data:', JSON.stringify(cleanBoardData).substring(0, 200) + '...');
+
+        // Create board in Firestore with sanitized data
+        const createdBoard = await createFirestoreBoard(cleanBoardData);
 
         savedBoards.push(createdBoard);
       }

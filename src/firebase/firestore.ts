@@ -40,35 +40,182 @@ export const createBoard = async (board: Omit<Board, 'id' | 'createdAt' | 'creat
     // Ensure lists array exists and has proper structure
     const lists = Array.isArray(board.lists) ? board.lists : [];
 
-    // Create lists with proper metadata
-    const listsWithMetadata = lists.map(list => ({
-      ...list,
-      id: list.id || crypto.randomUUID(),
-      createdAt: timestamp,
-      createdBy: currentUser.uid,
-      cards: Array.isArray(list.cards) ? list.cards : []
-    }));
+    // Create lists with proper metadata and sanitize data
+    const listsWithMetadata = lists.map(list => {
+      // Ensure cards array exists and sanitize each card
+      const sanitizedCards = Array.isArray(list.cards) ? list.cards.map(card => {
+        // Sanitize labels
+        const sanitizedLabels = Array.isArray(card.labels) ? card.labels.map(label => ({
+          id: label.id || crypto.randomUUID(),
+          text: label.text || '',
+          color: label.color || 'blue'
+        })) : [];
+
+        // Sanitize comments
+        const sanitizedComments = Array.isArray(card.comments) ? card.comments.map(comment => ({
+          id: comment.id || crypto.randomUUID(),
+          text: comment.text || '',
+          createdAt: comment.createdAt || timestamp,
+          author: comment.author || 'Unknown',
+          authorId: comment.authorId || currentUser.uid
+        })) : [];
+
+        // Sanitize attachments
+        const sanitizedAttachments = Array.isArray(card.attachments) ? card.attachments.map(attachment => ({
+          id: attachment.id || crypto.randomUUID(),
+          name: attachment.name || 'Unnamed attachment',
+          url: attachment.url || '',
+          createdAt: attachment.createdAt || timestamp,
+          uploadedBy: attachment.uploadedBy || currentUser.uid
+        })) : [];
+
+        // Sanitize checklists
+        const sanitizedChecklists = Array.isArray(card.checklists) ? card.checklists.map(checklist => {
+          // Sanitize checklist items
+          const sanitizedItems = Array.isArray(checklist.items) ? checklist.items.map(item => ({
+            id: item.id || crypto.randomUUID(),
+            name: item.name || '',
+            state: item.state || 'incomplete',
+            pos: typeof item.pos === 'number' ? item.pos : 0
+          })) : [];
+
+          return {
+            id: checklist.id || crypto.randomUUID(),
+            title: checklist.title || '',
+            items: sanitizedItems,
+            pos: typeof checklist.pos === 'number' ? checklist.pos : 0
+          };
+        }) : [];
+
+        return {
+          id: card.id || crypto.randomUUID(),
+          content: card.content || 'Untitled Card',
+          description: card.description || '',
+          labels: sanitizedLabels,
+          dueDate: card.dueDate || undefined,
+          comments: sanitizedComments,
+          attachments: sanitizedAttachments,
+          checklists: sanitizedChecklists,
+          createdAt: card.createdAt || timestamp,
+          createdBy: card.createdBy || currentUser.uid,
+          assignedTo: Array.isArray(card.assignedTo) ? card.assignedTo : []
+        };
+      }) : [];
+
+      return {
+        id: list.id || crypto.randomUUID(),
+        title: list.title || 'Untitled List',
+        cards: sanitizedCards,
+        createdAt: list.createdAt || timestamp,
+        createdBy: list.createdBy || currentUser.uid
+      };
+    });
 
     const newBoard: Board = {
       ...board,
       id: boardRef.id,
+      title: board.title || 'Untitled Board',
+      backgroundColor: board.backgroundColor || '#0079BF',
       createdAt: timestamp,
       createdBy: currentUser.uid,
       members: [currentUser.uid],
       lists: listsWithMetadata
     };
 
-    // Prepare data for Firestore
-    const firestoreData = {
-      ...newBoard,
-      createdAt: serverTimestamp()
+    // Helper function to recursively remove undefined values and handle circular references
+    const removeUndefined = (obj: any, seen = new WeakMap()): any => {
+      // Handle null or undefined
+      if (obj === null || obj === undefined) {
+        return null;
+      }
+
+      // Handle primitive types
+      if (typeof obj !== 'object') {
+        return obj;
+      }
+
+      // Handle circular references
+      if (seen.has(obj)) {
+        console.warn('Circular reference detected and removed');
+        return null;
+      }
+
+      // Add this object to seen objects
+      seen.set(obj, true);
+
+      // Handle arrays
+      if (Array.isArray(obj)) {
+        return obj.map(item => removeUndefined(item, seen));
+      }
+
+      // Handle objects
+      const result: any = {};
+      for (const key in obj) {
+        // Skip __proto__ properties
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+
+        // Skip functions and symbols which aren't valid in Firestore
+        if (typeof obj[key] === 'function' || typeof obj[key] === 'symbol') continue;
+
+        const value = removeUndefined(obj[key], seen);
+        if (value !== undefined) {
+          result[key] = value;
+        }
+      }
+      return result;
     };
 
-    console.log('Creating board in Firestore:', firestoreData);
+    // Prepare data for Firestore by removing all undefined values
+    const sanitizedBoard = removeUndefined(newBoard);
 
-    // Set the document in Firestore
-    await setDoc(boardRef, firestoreData);
-    console.log('Board created successfully with ID:', boardRef.id);
+    // Create a clean object for Firestore
+    const firestoreData: Record<string, any> = {};
+
+    // Manually copy properties to ensure no undefined values
+    Object.entries(sanitizedBoard).forEach(([key, value]) => {
+      if (value !== undefined) {
+        firestoreData[key] = value;
+      }
+    });
+
+    // Add server timestamp
+    firestoreData.createdAt = serverTimestamp();
+
+    // Log the data we're about to save
+    console.log('Creating board in Firestore with ID:', boardRef.id);
+
+    try {
+      // Set the document in Firestore
+      await setDoc(boardRef, firestoreData);
+      console.log('Board created successfully with ID:', boardRef.id);
+    } catch (error) {
+      console.error('Error in setDoc operation:', error);
+
+      // Try to identify the problematic field
+      if (error instanceof Error && error.message.includes('Unsupported field value: undefined')) {
+        console.error('Attempting to find undefined values in the data:');
+        const findUndefined = (obj: any, path = '') => {
+          if (obj === undefined) {
+            console.error(`Found undefined at path: ${path}`);
+            return;
+          }
+
+          if (obj === null || typeof obj !== 'object') return;
+
+          Object.entries(obj).forEach(([key, value]) => {
+            if (value === undefined) {
+              console.error(`Found undefined at path: ${path ? path + '.' + key : key}`);
+            } else if (typeof value === 'object' && value !== null) {
+              findUndefined(value, path ? path + '.' + key : key);
+            }
+          });
+        };
+
+        findUndefined(firestoreData);
+        throw error; // Re-throw after logging
+      }
+      throw error;
+    }
 
     // Return the board with the client-side timestamp for immediate use
     return newBoard;
@@ -162,7 +309,65 @@ export const getBoardById = async (boardId: string): Promise<Board | null> => {
 export const updateBoard = async (boardId: string, boardData: Partial<Board>): Promise<void> => {
   try {
     const boardRef = doc(boardsCollection, boardId);
-    await updateDoc(boardRef, boardData);
+
+    // Helper function to recursively remove undefined values and handle circular references
+    const removeUndefined = (obj: any, seen = new WeakMap()): any => {
+      // Handle null or undefined
+      if (obj === null || obj === undefined) {
+        return null;
+      }
+
+      // Handle primitive types
+      if (typeof obj !== 'object') {
+        return obj;
+      }
+
+      // Handle circular references
+      if (seen.has(obj)) {
+        console.warn('Circular reference detected and removed');
+        return null;
+      }
+
+      // Add this object to seen objects
+      seen.set(obj, true);
+
+      // Handle arrays
+      if (Array.isArray(obj)) {
+        return obj.map(item => removeUndefined(item, seen));
+      }
+
+      // Handle objects
+      const result: any = {};
+      for (const key in obj) {
+        // Skip __proto__ properties
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+
+        // Skip functions and symbols which aren't valid in Firestore
+        if (typeof obj[key] === 'function' || typeof obj[key] === 'symbol') continue;
+
+        const value = removeUndefined(obj[key], seen);
+        if (value !== undefined) {
+          result[key] = value;
+        }
+      }
+      return result;
+    };
+
+    // Sanitize the board data to remove undefined values
+    const sanitizedBoardData = removeUndefined(boardData);
+
+    // Create a clean object for Firestore
+    const firestoreData: Record<string, any> = {};
+
+    // Manually copy properties to ensure no undefined values
+    Object.entries(sanitizedBoardData).forEach(([key, value]) => {
+      if (value !== undefined) {
+        firestoreData[key] = value;
+      }
+    });
+
+    // Update the document in Firestore
+    await updateDoc(boardRef, firestoreData);
   } catch (error) {
     console.error('Error updating board:', error);
     throw error;

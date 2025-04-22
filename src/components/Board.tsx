@@ -16,7 +16,7 @@ const Board: React.FC<BoardProps> = ({ board, onUpdateBoard }) => {
   const [lists, setLists] = useState<ListType[]>(board.lists);
   const [isAddingList, setIsAddingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState('');
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<'list' | 'card' | null>(null);
   const [activeItem, setActiveItem] = useState<any>(null);
 
@@ -213,7 +213,10 @@ const Board: React.FC<BoardProps> = ({ board, onUpdateBoard }) => {
       description: '',
       labels: [],
       comments: [],
-      attachments: []
+      attachments: [],
+      checklists: [],
+      createdAt: '',
+      createdBy: ''
     };
 
     const newLists = lists.map((list) => {

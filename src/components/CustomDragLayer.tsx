@@ -21,7 +21,7 @@ const CustomDragLayer: React.FC<CustomDragLayerProps> = ({ lists }) => {
     return null;
   }
 
-  const getItemStyles = (initialOffset: XYCoord, currentOffset: XYCoord) => {
+  const getItemStyles = (_initialOffset: XYCoord, currentOffset: XYCoord) => {
     const { x, y } = currentOffset;
     const transform = `translate(${x}px, ${y}px)`;
     return {

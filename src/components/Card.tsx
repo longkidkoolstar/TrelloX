@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card as CardType, Label, Checklist } from '../types';
+import { Card as CardType } from '../types';
 import CardModal from './CardModal';
 import { useModalContext } from '../context/ModalContext';
 import './Card.css';
@@ -17,7 +17,6 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({
   card,
-  index,
   listId,
   listTitle,
   onDelete,
@@ -119,11 +118,17 @@ const Card: React.FC<CardProps> = ({
             <div className="card-badge">
               <span className="card-badge-icon">✓</span>
               <span className="card-badge-text">
-                {card.checklists.reduce((count, checklist) => {
-                  const completed = checklist.items.filter(item => item.state === 'complete').length;
-                  const total = checklist.items.length;
-                  return `${count + completed}/${count + total}`;
-                }, 0)}
+                {(() => {
+                  const totals = card.checklists.reduce((acc, checklist) => {
+                    const completed = checklist.items.filter(item => item.state === 'complete').length;
+                    const total = checklist.items.length;
+                    return {
+                      completed: acc.completed + completed,
+                      total: acc.total + total
+                    };
+                  }, { completed: 0, total: 0 });
+                  return `${totals.completed}/${totals.total}`;
+                })()}
               </span>
             </div>
           )}

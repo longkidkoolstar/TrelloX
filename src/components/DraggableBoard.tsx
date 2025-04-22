@@ -94,7 +94,8 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       comments: [],
       attachments: [],
       createdAt: new Date().toISOString(),
-      createdBy: 'current-user'
+      createdBy: 'current-user',
+      checklists: []
     };
 
     const newLists = lists.map((list) => {

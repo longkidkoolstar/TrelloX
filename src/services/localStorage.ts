@@ -30,21 +30,27 @@ export const loadBoards = (): Board[] => {
           id: 'list-1',
           title: 'To Do',
           cards: [
-            { 
-              id: 'card-1', 
+            {
+              id: 'card-1',
               content: 'Create a Trello clone',
               description: '',
               labels: [],
               comments: [],
-              attachments: []
+              attachments: [],
+              checklists: [],
+              createdAt: '',
+              createdBy: ''
             },
-            { 
-              id: 'card-2', 
+            {
+              id: 'card-2',
               content: 'Add drag and drop functionality',
               description: '',
               labels: [],
               comments: [],
-              attachments: []
+              attachments: [],
+              checklists: [],
+              createdAt: '',
+              createdBy: ''
             },
           ],
         },
@@ -52,13 +58,16 @@ export const loadBoards = (): Board[] => {
           id: 'list-2',
           title: 'In Progress',
           cards: [
-            { 
-              id: 'card-3', 
+            {
+              id: 'card-3',
               content: 'Design the UI',
               description: '',
               labels: [],
               comments: [],
-              attachments: []
+              attachments: [],
+              checklists: [],
+              createdAt: '',
+              createdBy: ''
             },
           ],
         },
@@ -66,18 +75,24 @@ export const loadBoards = (): Board[] => {
           id: 'list-3',
           title: 'Done',
           cards: [
-            { 
-              id: 'card-4', 
+            {
+              id: 'card-4',
               content: 'Set up the project',
               description: '',
               labels: [],
               comments: [],
-              attachments: []
+              attachments: [],
+              checklists: [],
+              createdAt: '',
+              createdBy: ''
             },
           ],
         },
       ],
-      backgroundColor: '#0079bf'
+      backgroundColor: '#0079bf',
+      createdAt: '',
+      createdBy: '',
+      members: []
     }
   ];
 };

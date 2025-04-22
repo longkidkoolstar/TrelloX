@@ -1,4 +1,4 @@
-import { Board, List, Card, Label, Checklist, CheckItem } from '../types';
+import { Board, List, Card, Attachment } from '../types';
 
 // Trello API types
 interface TrelloBoard {
@@ -263,37 +263,45 @@ export const convertTrelloBoard = async (
               color: convertTrelloColor(label.color) as any
             })) : [];
 
-            // Convert Trello comments to TrelloX comments
-            const comments = Array.isArray(trelloComments) ? trelloComments.map(comment => {
-              try {
-                return {
-                  id: comment.id,
-                  text: comment.data?.text || '',
-                  createdAt: comment.date || new Date().toISOString(),
-                  author: comment.memberCreator?.fullName || comment.memberCreator?.username || 'Unknown',
-                  authorId: comment.memberCreator?.username || 'unknown'
-                };
-              } catch (err) {
-                console.warn('Error processing comment:', err);
-                return null;
-              }
-            }).filter(Boolean) : [];
+    // For the comments array, update the type assertion
+    const comments = Array.isArray(trelloComments) 
+      ? trelloComments
+          .map(comment => {
+            try {
+              return {
+                id: comment.id,
+                text: comment.data?.text || '',
+                createdAt: comment.date || new Date().toISOString(),
+                author: comment.memberCreator?.fullName || comment.memberCreator?.username || 'Unknown',
+                authorId: comment.memberCreator?.username || 'unknown'
+              };
+            } catch (err) {
+              console.warn('Error processing comment:', err);
+              return null;
+            }
+          })
+          .filter((comment): comment is { id: string; text: string; createdAt: string; author: string; authorId: string; } => comment !== null)
+      : [];
 
-            // Convert Trello attachments to TrelloX attachments
-            const attachments = Array.isArray(trelloAttachments) ? trelloAttachments.map(attachment => {
-              try {
-                return {
-                  id: attachment.id,
-                  name: attachment.name || 'Unnamed attachment',
-                  url: attachment.url || '',
-                  createdAt: attachment.date || new Date().toISOString(),
-                  uploadedBy: userId
-                };
-              } catch (err) {
-                console.warn('Error processing attachment:', err);
-                return null;
-              }
-            }).filter(Boolean) : [];
+    // Similarly for attachments
+    const attachments: Attachment[] = Array.isArray(trelloAttachments)
+      ? trelloAttachments
+          .map(attachment => {
+            try {
+              return {
+                id: attachment.id,
+                name: attachment.name || 'Unnamed attachment',
+                url: attachment.url || '',
+                createdAt: attachment.date || new Date().toISOString(),
+                uploadedBy: userId
+              };
+            } catch (err) {
+              console.warn('Error processing attachment:', err);
+              return null;
+            }
+          })
+          .filter((attachment): attachment is Attachment => attachment !== null)
+      : [];
 
             // Convert Trello checklists to TrelloX checklists
             const checklists = Array.isArray(trelloChecklists) ? trelloChecklists.map(checklist => {
@@ -316,14 +324,14 @@ export const convertTrelloBoard = async (
                 console.warn('Error processing checklist:', err);
                 return null;
               }
-            }).filter(Boolean).sort((a, b) => a.pos - b.pos) : [];
+            }).filter((item): item is NonNullable<typeof item> => item !== null).sort((a, b) => a.pos - b.pos) : [];
 
             return {
               id: trelloCard.id,
               content: trelloCard.name,
               description: trelloCard.desc || '',
               labels,
-              dueDate: trelloCard.due,
+              dueDate: trelloCard.due || undefined,
               comments,
               attachments,
               checklists,

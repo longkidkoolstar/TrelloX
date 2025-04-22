@@ -18,7 +18,6 @@ interface ListProps {
 
 const List: React.FC<ListProps> = ({
   list,
-  index,
   onAddCard,
   onDeleteCard,
   onDeleteList,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import Signup from './Signup';
-import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { getRedirectResult } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { saveUserProfile, convertFirebaseUser } from '../firebase/auth';
 import './AuthContainer.css';

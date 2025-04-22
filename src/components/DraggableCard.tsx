@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { ItemTypes, CardDragItem } from './DragTypes';
-import { Card as CardType, Checklist } from '../types';
+import { Card as CardType } from '../types';
 import CardModal from './CardModal';
 import { useModalContext } from '../context/ModalContext';
 import './Card.css';
@@ -61,7 +61,7 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    end: (item, monitor) => {
+    end: (_item, monitor) => {
       const didDrop = monitor.didDrop();
       if (!didDrop) {
         // Card was not dropped on a valid target
@@ -190,11 +190,17 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
             <div className="card-badge">
               <span className="card-badge-icon">✓</span>
               <span className="card-badge-text">
-                {card.checklists.reduce((count, checklist) => {
-                  const completed = checklist.items.filter(item => item.state === 'complete').length;
-                  const total = checklist.items.length;
-                  return `${count + completed}/${count + total}`;
-                }, 0)}
+                {(() => {
+                  const totals = card.checklists.reduce((acc, checklist) => {
+                    const completed = checklist.items.filter(item => item.state === 'complete').length;
+                    const total = checklist.items.length;
+                    return {
+                      completed: acc.completed + completed,
+                      total: acc.total + total
+                    };
+                  }, { completed: 0, total: 0 });
+                  return `${totals.completed}/${totals.total}`;
+                })()}
               </span>
             </div>
           )}
@@ -228,3 +234,4 @@ const DraggableCard: React.FC<DraggableCardProps> = ({
 };
 
 export default DraggableCard;
+
