@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import Signup from './Signup';
+import ForgotPassword from './ForgotPassword';
 import { getRedirectResult } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { saveUserProfile, convertFirebaseUser } from '../firebase/auth';
@@ -11,7 +12,8 @@ interface AuthContainerProps {
 }
 
 const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthenticated }) => {
-  const [showLogin, setShowLogin] = useState(true);
+  // Define view states: 'login', 'signup', 'forgotPassword'
+  const [currentView, setCurrentView] = useState<'login' | 'signup' | 'forgotPassword'>('login');
   const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
 
   // Check for redirect result from Google sign-in
@@ -38,11 +40,15 @@ const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthenticated }) => {
   }, [onAuthenticated]);
 
   const handleSwitchToSignup = () => {
-    setShowLogin(false);
+    setCurrentView('signup');
   };
 
   const handleSwitchToLogin = () => {
-    setShowLogin(true);
+    setCurrentView('login');
+  };
+
+  const handleSwitchToForgotPassword = () => {
+    setCurrentView('forgotPassword');
   };
 
   if (isCheckingRedirect) {
@@ -56,14 +62,23 @@ const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthenticated }) => {
 
   return (
     <>
-      {showLogin ? (
+      {currentView === 'login' && (
         <Login
           onLogin={onAuthenticated}
           onSwitchToSignup={handleSwitchToSignup}
+          onSwitchToForgotPassword={handleSwitchToForgotPassword}
         />
-      ) : (
+      )}
+
+      {currentView === 'signup' && (
         <Signup
           onSignup={onAuthenticated}
+          onSwitchToLogin={handleSwitchToLogin}
+        />
+      )}
+
+      {currentView === 'forgotPassword' && (
+        <ForgotPassword
           onSwitchToLogin={handleSwitchToLogin}
         />
       )}

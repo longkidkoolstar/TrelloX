@@ -6,7 +6,8 @@ import {
   User as FirebaseUser,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './config';
@@ -120,4 +121,14 @@ export const onAuthStateChange = (callback: (user: User | null) => void): (() =>
   return onAuthStateChanged(auth, (user) => {
     callback(user ? convertFirebaseUser(user) : null);
   });
+};
+
+// Send password reset email
+export const resetPassword = async (email: string): Promise<void> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
 };
