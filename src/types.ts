@@ -71,6 +71,7 @@ export interface Board {
   title: string;
   lists: List[];
   backgroundColor?: string;
+  backgroundImage?: string;
   createdAt: string;
   createdBy: string;
   members: string[]; // Array of user IDs who have access to this board

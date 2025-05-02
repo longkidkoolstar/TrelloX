@@ -65,11 +65,43 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-.board-creator-colors {
+.board-creator-error {
+  color: #eb5a46;
+  padding: 0 16px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.board-creator-background-tabs {
+  display: flex;
+  padding: 0 16px;
+  border-bottom: 1px solid #e1e4e8;
+  margin-bottom: 16px;
+}
+
+.board-creator-tab {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b778c;
+  border-bottom: 2px solid transparent;
+  margin-right: 8px;
+}
+
+.board-creator-tab.active {
+  color: #0079bf;
+  border-bottom-color: #0079bf;
+}
+
+.board-creator-colors,
+.board-creator-images {
   padding: 0 16px 16px;
 }
 
-.board-creator-colors h3 {
+.board-creator-colors h3,
+.board-creator-images h3 {
   margin: 0 0 8px;
   font-size: 14px;
   color: #172b4d;
@@ -96,6 +128,81 @@
 
 .board-creator-color-option.selected {
   box-shadow: 0 0 0 2px white, 0 0 0 4px #0079bf;
+}
+
+.board-creator-image-upload {
+  margin-bottom: 12px;
+}
+
+.board-creator-upload-button {
+  background-color: #0079bf;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.board-creator-upload-button:disabled {
+  background-color: #dfe1e6;
+  color: #a5adba;
+  cursor: not-allowed;
+}
+
+.board-creator-image-url {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.board-creator-url-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #dfe1e6;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+.board-creator-url-button {
+  background-color: #0079bf;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.board-creator-url-button:disabled {
+  background-color: #dfe1e6;
+  color: #a5adba;
+  cursor: not-allowed;
+}
+
+.board-creator-current-image {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f4f5f7;
+  padding: 8px 12px;
+  border-radius: 3px;
+}
+
+.board-creator-current-image p {
+  margin: 0;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.board-creator-remove-image {
+  background-color: #eb5a46;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .board-creator-actions {

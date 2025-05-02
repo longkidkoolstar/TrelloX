@@ -9,6 +9,19 @@ interface TrelloBoard {
   prefs: {
     backgroundColor?: string;
     backgroundImage?: string;
+    backgroundImageScaled?: Array<{
+      width: number;
+      height: number;
+      url: string;
+    }>;
+    backgroundTile?: boolean;
+    backgroundBrightness?: string;
+    backgroundBottomColor?: string;
+    backgroundTopColor?: string;
+    // For Unsplash backgrounds
+    backgroundUrl?: string;
+    backgroundFullUrl?: string;
+    backgroundLargeUrl?: string;
   };
 }
 
@@ -76,6 +89,7 @@ interface TrelloCheckItem {
 // Fetch boards from Trello
 export const fetchTrelloBoards = async (apiKey: string, token: string): Promise<TrelloBoard[]> => {
   try {
+    // First get the list of boards with basic info
     const response = await fetch(
       `https://api.trello.com/1/members/me/boards?key=${apiKey}&token=${token}&fields=name,desc,url,prefs`
     );
@@ -84,7 +98,39 @@ export const fetchTrelloBoards = async (apiKey: string, token: string): Promise<
       throw new Error(`Failed to fetch boards: ${response.statusText}`);
     }
 
-    return await response.json();
+    const boards = await response.json() as TrelloBoard[];
+    console.log(`Fetched ${boards.length} boards from Trello`);
+
+    // Process each board to get full background information
+    const boardsWithDetails = await Promise.all(
+      boards.map(async (board: TrelloBoard) => {
+        try {
+          // Fetch detailed board information with expanded prefs
+          const detailResponse = await fetch(
+            `https://api.trello.com/1/boards/${board.id}?key=${apiKey}&token=${token}&fields=name,desc,url,prefs&board_fields=prefs`
+          );
+
+          if (detailResponse.ok) {
+            const detailedBoard = await detailResponse.json();
+            console.log(`Fetched detailed info for board: ${detailedBoard.name}`);
+
+            // If the board has a background, log it for debugging
+            if (detailedBoard.prefs && (detailedBoard.prefs.backgroundImage || detailedBoard.prefs.backgroundImageScaled)) {
+              console.log(`Board ${detailedBoard.name} has a background image`);
+            }
+
+            return detailedBoard;
+          }
+        } catch (detailError) {
+          console.warn(`Could not fetch detailed info for board ${board.id}:`, detailError);
+        }
+
+        // Return original board if detailed fetch fails
+        return board;
+      })
+    );
+
+    return boardsWithDetails;
   } catch (error) {
     console.error('Error fetching Trello boards:', error);
     throw error;
@@ -264,7 +310,7 @@ export const convertTrelloBoard = async (
             })) : [];
 
     // For the comments array, update the type assertion
-    const comments = Array.isArray(trelloComments) 
+    const comments = Array.isArray(trelloComments)
       ? trelloComments
           .map(comment => {
             try {
@@ -368,11 +414,93 @@ export const convertTrelloBoard = async (
     })
   );
 
-  // Create the TrelloX board
+  // Get the best background image if available
+  let backgroundImage: string | undefined = undefined;
+
+  // Log the board preferences to debug
+  console.log('Trello board preferences:', JSON.stringify(trelloBoard.prefs, null, 2));
+
+  // Check for Unsplash backgrounds first (they're usually higher quality)
+  if (trelloBoard.prefs.backgroundLargeUrl) {
+    backgroundImage = trelloBoard.prefs.backgroundLargeUrl;
+    console.log('Using Unsplash large background image:', backgroundImage);
+  }
+  else if (trelloBoard.prefs.backgroundFullUrl) {
+    backgroundImage = trelloBoard.prefs.backgroundFullUrl;
+    console.log('Using Unsplash full background image:', backgroundImage);
+  }
+  else if (trelloBoard.prefs.backgroundUrl) {
+    backgroundImage = trelloBoard.prefs.backgroundUrl;
+    console.log('Using Unsplash background image:', backgroundImage);
+  }
+  // Then try to get the best scaled image if available
+  else if (trelloBoard.prefs.backgroundImageScaled && trelloBoard.prefs.backgroundImageScaled.length > 0) {
+    // Sort by size (largest first) and take the first one
+    const sortedImages = [...trelloBoard.prefs.backgroundImageScaled].sort(
+      (a, b) => (b.width * b.height) - (a.width * a.height)
+    );
+    backgroundImage = sortedImages[0].url;
+    console.log('Using scaled background image:', backgroundImage);
+  }
+  // Fall back to the regular background image
+  else if (trelloBoard.prefs.backgroundImage) {
+    backgroundImage = trelloBoard.prefs.backgroundImage;
+    console.log('Using regular background image:', backgroundImage);
+  }
+
+  // If we have a background image, make sure it's a valid URL
+  if (backgroundImage) {
+    // Some Trello background images might be relative paths or color codes
+    if (!backgroundImage.startsWith('http')) {
+      // Check if it's a color code
+      if (backgroundImage.startsWith('#')) {
+        console.log('Background image is actually a color code:', backgroundImage);
+        trelloBoard.prefs.backgroundColor = backgroundImage;
+        backgroundImage = undefined;
+      } else {
+        // Try to convert to a full URL if it's a relative path
+        try {
+          // Trello sometimes uses paths like "/9/green.jpg" for backgrounds
+          if (backgroundImage.startsWith('/')) {
+            backgroundImage = `https://trello-backgrounds.s3.amazonaws.com${backgroundImage}`;
+            console.log('Converted relative path to full URL:', backgroundImage);
+          }
+        } catch (error) {
+          console.error('Error processing background image URL:', error);
+          backgroundImage = undefined;
+        }
+      }
+    }
+  }
+
+  // Check for Unsplash background
+  if (!backgroundImage && trelloBoard.prefs.backgroundTopColor && trelloBoard.prefs.backgroundBottomColor) {
+    // If no image but we have gradient colors, create a CSS gradient background
+    console.log('Using gradient background colors');
+    trelloBoard.prefs.backgroundColor = `linear-gradient(to bottom, ${trelloBoard.prefs.backgroundTopColor}, ${trelloBoard.prefs.backgroundBottomColor})`;
+  }
+
+  // If we still don't have a background image, try to extract it from the board URL
+  // Some Trello boards have background images in their URLs
+  if (!backgroundImage && trelloBoard.url) {
+    try {
+      const urlParams = new URL(trelloBoard.url).searchParams;
+      const bgParam = urlParams.get('background');
+      if (bgParam && bgParam.startsWith('http')) {
+        backgroundImage = bgParam;
+        console.log('Extracted background image from URL:', backgroundImage);
+      }
+    } catch (error) {
+      console.warn('Error extracting background from URL:', error);
+    }
+  }
+
+  // Create the TrelloX board with background settings
   const board: Board = {
     id: trelloBoard.id,
     title: trelloBoard.name,
     lists,
+    backgroundImage,
     backgroundColor: trelloBoard.prefs.backgroundColor || '#0079BF',
     createdAt: new Date().toISOString(),
     createdBy: userId,

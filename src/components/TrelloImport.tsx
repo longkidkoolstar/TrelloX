@@ -22,6 +22,19 @@ interface TrelloBoard {
   prefs: {
     backgroundColor?: string;
     backgroundImage?: string;
+    backgroundImageScaled?: Array<{
+      width: number;
+      height: number;
+      url: string;
+    }>;
+    backgroundTile?: boolean;
+    backgroundBrightness?: string;
+    backgroundBottomColor?: string;
+    backgroundTopColor?: string;
+    // For Unsplash backgrounds
+    backgroundUrl?: string;
+    backgroundFullUrl?: string;
+    backgroundLargeUrl?: string;
   };
   selected?: boolean;
 }
@@ -128,6 +141,23 @@ const TrelloImport: React.FC<TrelloImportProps> = ({ userId, onImportComplete, o
           token,
           userId
         );
+
+        // Log the background information for debugging
+        console.log(`Board ${board.name} - Original background info:`, {
+          backgroundImage: board.prefs.backgroundImage,
+          backgroundImageScaled: board.prefs.backgroundImageScaled,
+          backgroundUrl: board.prefs.backgroundUrl,
+          backgroundFullUrl: board.prefs.backgroundFullUrl,
+          backgroundLargeUrl: board.prefs.backgroundLargeUrl,
+          backgroundColor: board.prefs.backgroundColor,
+          backgroundTopColor: board.prefs.backgroundTopColor,
+          backgroundBottomColor: board.prefs.backgroundBottomColor
+        });
+
+        console.log(`Board ${board.name} - Converted background info:`, {
+          backgroundImage: convertedBoard.backgroundImage,
+          backgroundColor: convertedBoard.backgroundColor
+        });
 
         importedBoards.push(convertedBoard);
         console.log(`Successfully imported board: ${board.name}`);
@@ -249,9 +279,44 @@ const TrelloImport: React.FC<TrelloImportProps> = ({ userId, onImportComplete, o
                     checked={board.selected || false}
                     onChange={() => toggleBoardSelection(board.id)}
                   />
+                  <div
+                    className="board-preview"
+                    style={
+                      // Check for Unsplash backgrounds first
+                      board.prefs.backgroundLargeUrl
+                        ? { backgroundImage: `url(${board.prefs.backgroundLargeUrl})` }
+                        : board.prefs.backgroundFullUrl
+                          ? { backgroundImage: `url(${board.prefs.backgroundFullUrl})` }
+                          : board.prefs.backgroundUrl
+                            ? { backgroundImage: `url(${board.prefs.backgroundUrl})` }
+                            // Then check for scaled images
+                            : board.prefs.backgroundImageScaled && board.prefs.backgroundImageScaled.length > 0
+                              ? { backgroundImage: `url(${board.prefs.backgroundImageScaled[0].url})` }
+                              // Then regular background image
+                              : board.prefs.backgroundImage
+                                ? { backgroundImage: `url(${board.prefs.backgroundImage})` }
+                                // Gradient background
+                                : board.prefs.backgroundTopColor && board.prefs.backgroundBottomColor
+                                  ? { backgroundImage: `linear-gradient(to bottom, ${board.prefs.backgroundTopColor}, ${board.prefs.backgroundBottomColor})` }
+                                  // Fallback to solid color
+                                  : { backgroundColor: board.prefs.backgroundColor || '#0079bf' }
+                    }
+                  ></div>
                   <div className="board-info">
                     <span className="board-name">{board.name}</span>
                     {board.desc && <span className="board-description">{board.desc}</span>}
+                    <span className="board-background-info">
+                      {board.prefs.backgroundLargeUrl || board.prefs.backgroundFullUrl || board.prefs.backgroundUrl ?
+                        '✓ Has Unsplash background image' :
+                        board.prefs.backgroundImage || (board.prefs.backgroundImageScaled && board.prefs.backgroundImageScaled.length > 0) ?
+                          '✓ Has custom background image' :
+                          board.prefs.backgroundTopColor && board.prefs.backgroundBottomColor ?
+                            '✓ Has gradient background' :
+                            board.prefs.backgroundColor ?
+                              `✓ Background color: ${board.prefs.backgroundColor}` :
+                              '✓ Default background'
+                      }
+                    </span>
                   </div>
                 </div>
               ))}

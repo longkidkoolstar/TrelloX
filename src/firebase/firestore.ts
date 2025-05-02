@@ -116,11 +116,18 @@ export const createBoard = async (board: Omit<Board, 'id' | 'createdAt' | 'creat
       id: boardRef.id,
       title: board.title || 'Untitled Board',
       backgroundColor: board.backgroundColor || '#0079BF',
+      backgroundImage: board.backgroundImage, // Include the background image
       createdAt: timestamp,
       createdBy: currentUser.uid,
       members: [currentUser.uid],
       lists: listsWithMetadata
     };
+
+    // Log the background information for debugging
+    console.log('Creating board with background:', {
+      backgroundColor: board.backgroundColor,
+      backgroundImage: board.backgroundImage
+    });
 
     // Helper function to recursively remove undefined values and handle circular references
     const removeUndefined = (obj: any, seen = new WeakMap()): any => {
@@ -309,6 +316,12 @@ export const getBoardById = async (boardId: string): Promise<Board | null> => {
 export const updateBoard = async (boardId: string, boardData: Partial<Board>): Promise<void> => {
   try {
     const boardRef = doc(boardsCollection, boardId);
+
+    // Log the background information for debugging
+    console.log('Updating board with background:', {
+      backgroundColor: boardData.backgroundColor,
+      backgroundImage: boardData.backgroundImage
+    });
 
     // Helper function to recursively remove undefined values and handle circular references
     const removeUndefined = (obj: any, seen = new WeakMap()): any => {

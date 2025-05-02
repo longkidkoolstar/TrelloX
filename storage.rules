@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to read any image
+    match /board-backgrounds/{allPaths=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow users to upload images to their own folder
+    match /board-backgrounds/{userId}/{fileName} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

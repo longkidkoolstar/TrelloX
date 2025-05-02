@@ -3,6 +3,9 @@
   flex-direction: column;
   height: calc(100vh - 50px);
   background-color: #0079bf;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 16px;
   overflow-x: auto;
   user-select: none;

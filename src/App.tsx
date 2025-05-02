@@ -225,10 +225,15 @@ function App() {
         const cleanBoardData = removeUndefined({
           title: board.title || 'Untitled Board',
           backgroundColor: board.backgroundColor || '#0079BF',
+          backgroundImage: board.backgroundImage, // Include the background image
           lists: sanitizedLists
         });
 
         console.log('Sanitized board data:', JSON.stringify(cleanBoardData).substring(0, 200) + '...');
+        console.log('Background info being saved:', {
+          backgroundColor: board.backgroundColor,
+          backgroundImage: board.backgroundImage
+        });
 
         // Create board in Firestore with sanitized data
         const createdBoard = await createFirestoreBoard(cleanBoardData);

@@ -168,9 +168,23 @@
   margin-top: 0.25rem;
 }
 
+.board-preview {
+  width: 60px;
+  height: 40px;
+  border-radius: 3px;
+  margin-right: 1rem;
+  background-color: #0079bf;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .board-info {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
 }
 
 .board-name {
@@ -186,6 +200,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 400px;
+}
+
+.board-background-info {
+  font-size: 0.75rem;
+  color: #6b778c;
+  margin-top: 0.25rem;
+  font-style: italic;
 }
 
 .importing-status {

@@ -45,18 +45,18 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
     // Find source and target lists
     const sourceListIndex = lists.findIndex(list => list.id === sourceListId);
     const targetListIndex = lists.findIndex(list => list.id === targetListId);
-    
+
     if (sourceListIndex === -1 || targetListIndex === -1) return;
-    
+
     const newLists = [...lists];
     const sourceList = { ...newLists[sourceListIndex] };
-    const targetList = sourceListId === targetListId 
-      ? sourceList 
+    const targetList = sourceListId === targetListId
+      ? sourceList
       : { ...newLists[targetListIndex] };
-    
+
     // Get the card being moved
     const [movedCard] = sourceList.cards.splice(dragIndex, 1);
-    
+
     // Insert the card at the new position
     if (sourceListId === targetListId) {
       // Moving within the same list
@@ -68,7 +68,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       newLists[sourceListIndex] = sourceList;
       newLists[targetListIndex] = targetList;
     }
-    
+
     setLists(newLists);
   };
 
@@ -171,10 +171,33 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
     }
   };
 
+  // Determine the background style based on available background properties
+  let boardStyle = {};
+
+  if (board.backgroundImage) {
+    // If we have a background image, use it
+    boardStyle = {
+      backgroundImage: `url(${board.backgroundImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    };
+  } else if (board.backgroundColor && board.backgroundColor.startsWith('linear-gradient')) {
+    // If we have a gradient background
+    boardStyle = {
+      backgroundImage: board.backgroundColor,
+      backgroundSize: 'cover'
+    };
+  } else {
+    // Default to solid color background
+    boardStyle = {
+      backgroundColor: board.backgroundColor || '#0079bf'
+    };
+  }
+
   return (
-    <div className="board" style={{ backgroundColor: board.backgroundColor || '#0079bf' }}>
+    <div className="board" style={boardStyle}>
       <CustomDragLayer lists={lists} />
-      
+
       <div className="board-lists">
         {lists.map((list, index) => (
           <DraggableList
