@@ -12,6 +12,7 @@ interface HeaderProps {
   onImportFromTrello?: () => void;
   user: User;
   onSignOut: () => void;
+  headerColor?: string; // Optional prop for the header background color
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -22,10 +23,14 @@ const Header: React.FC<HeaderProps> = ({
   onDeleteBoard,
   onImportFromTrello,
   user,
-  onSignOut
+  onSignOut,
+  headerColor
 }) => {
+  // Create a style object for the header with the dynamic background color
+  const headerStyle = headerColor ? { backgroundColor: headerColor } : {};
+
   return (
-    <header className="header">
+    <header className="header" style={headerStyle}>
       <div className="header-logo">
         <h1>TrelloX</h1>
       </div>

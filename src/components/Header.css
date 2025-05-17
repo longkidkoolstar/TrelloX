@@ -2,16 +2,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #026aa7;
+  background-color: #026aa7; /* Default color, will be overridden by inline style */
   color: white;
   padding: 0.5rem 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease; /* Smooth transition when color changes */
 }
 
 .header-logo h1 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); /* Add text shadow for better readability */
 }
 
 .header-button {
@@ -23,6 +25,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .header-button:hover {
@@ -37,6 +40,7 @@
 
 .user-name {
   font-weight: 500;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .sign-out-button {
@@ -48,6 +52,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .sign-out-button:hover {
@@ -64,6 +69,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 .import-button:hover {

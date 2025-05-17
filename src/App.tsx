@@ -8,6 +8,7 @@ import TrelloImport from './components/TrelloImport'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
+import { getDominantColor, darkenColor } from './utils/colorUtils'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -16,6 +17,7 @@ function App() {
   const [currentBoardId, setCurrentBoardId] = useState<string>('')
   const [isCreatingBoard, setIsCreatingBoard] = useState(false)
   const [isImportingFromTrello, setIsImportingFromTrello] = useState(false)
+  const [headerColor, setHeaderColor] = useState<string>('#026aa7') // Default Trello-like blue
 
   // Listen for authentication state changes
   useEffect(() => {
@@ -280,6 +282,35 @@ function App() {
 
   const currentBoard = boards.find(board => board.id === currentBoardId) || null
 
+  // Update header color when current board changes
+  useEffect(() => {
+    const updateHeaderColor = async () => {
+      if (currentBoard) {
+        if (currentBoard.backgroundImage) {
+          // If there's a background image, extract its dominant color
+          try {
+            const dominantColor = await getDominantColor(currentBoard.backgroundImage);
+            setHeaderColor(dominantColor);
+          } catch (error) {
+            console.error('Error extracting dominant color:', error);
+            // If there's an error, use the board's background color or default
+            const baseColor = currentBoard.backgroundColor || '#026aa7';
+            setHeaderColor(darkenColor(baseColor, 0.15)); // Darken by 15%
+          }
+        } else if (currentBoard.backgroundColor) {
+          // If there's only a background color, darken it slightly to differentiate from the board
+          const darkerColor = darkenColor(currentBoard.backgroundColor, 0.15); // Darken by 15%
+          setHeaderColor(darkerColor);
+        } else {
+          // Default color
+          setHeaderColor('#026aa7');
+        }
+      }
+    };
+
+    updateHeaderColor();
+  }, [currentBoard]);
+
   if (loading) {
     return <div className="loading">Loading...</div>
   }
@@ -299,6 +330,7 @@ function App() {
         onImportFromTrello={handleImportFromTrello}
         user={user}
         onSignOut={handleSignOut}
+        headerColor={headerColor}
       />
 
       {currentBoard && (
