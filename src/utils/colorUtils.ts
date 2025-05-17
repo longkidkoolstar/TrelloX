@@ -4,7 +4,7 @@
  * @returns Promise that resolves to the dominant color in hex format (e.g., #RRGGBB)
  */
 export const getDominantColor = (imageUrl: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     if (!imageUrl) {
       resolve('#026aa7'); // Default Trello-like blue if no image
       return;
