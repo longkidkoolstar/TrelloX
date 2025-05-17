@@ -112,15 +112,14 @@
   z-index: 90;
 }
 
-.board-selector-delete-btn {
+.board-selector-delete-btn, .board-selector-edit-btn {
   background: none;
   border: none;
   color: #6b778c;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
   cursor: pointer;
   padding: 0 5px;
-  margin-left: 8px;
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -132,12 +131,27 @@
   transition: all 0.2s ease;
 }
 
-.board-selector-item:hover .board-selector-delete-btn {
+.board-selector-delete-btn {
+  right: 10px;
+}
+
+.board-selector-edit-btn {
+  right: 40px;
+}
+
+.board-selector-item:hover .board-selector-delete-btn,
+.board-selector-item:hover .board-selector-edit-btn {
   visibility: visible;
   opacity: 1;
 }
 
 .board-selector-delete-btn:hover {
   background-color: rgba(223, 225, 230, 0.8);
-  color: #172b4d;
+  color: #eb5a46;
+}
+
+.board-selector-edit-btn:hover {
+  opacity: 1;
+  color: #0079bf;
+  background-color: rgba(223, 225, 230, 0.8);
 }

@@ -8,6 +8,7 @@ interface BoardSelectorProps {
   onSelectBoard: (boardId: string) => void;
   onAddBoard: () => void;
   onDeleteBoard?: (boardId: string) => void;
+  onEditBoard?: (boardId: string) => void;
 }
 
 const BoardSelector: React.FC<BoardSelectorProps> = ({
@@ -15,7 +16,8 @@ const BoardSelector: React.FC<BoardSelectorProps> = ({
   currentBoardId,
   onSelectBoard,
   onAddBoard,
-  onDeleteBoard
+  onDeleteBoard,
+  onEditBoard
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,6 +56,18 @@ const BoardSelector: React.FC<BoardSelectorProps> = ({
                   ></div>
                   <span>{board.title}</span>
                 </div>
+                {onEditBoard && (
+                  <button
+                    className="board-selector-edit-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditBoard(board.id);
+                    }}
+                    title="Edit board"
+                  >
+                    <i className="fas fa-cog board-edit-icon"></i>
+                  </button>
+                )}
                 {onDeleteBoard && (
                   <button
                     className="board-selector-delete-btn"

@@ -3,12 +3,14 @@ import './App.css'
 import Header from './components/Header'
 import DraggableBoard from './components/DraggableBoard'
 import BoardCreator from './components/BoardCreator'
+import BoardEditor from './components/BoardEditor'
 import AuthContainer from './components/AuthContainer'
 import TrelloImport from './components/TrelloImport'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
 import { getDominantColor, darkenColor } from './utils/colorUtils'
+import { useModalContext } from './context/ModalContext'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -17,7 +19,9 @@ function App() {
   const [currentBoardId, setCurrentBoardId] = useState<string>('')
   const [isCreatingBoard, setIsCreatingBoard] = useState(false)
   const [isImportingFromTrello, setIsImportingFromTrello] = useState(false)
+  const [editingBoardId, setEditingBoardId] = useState<string | null>(null)
   const [headerColor, setHeaderColor] = useState<string>('#026aa7') // Default Trello-like blue
+  const { openModal } = useModalContext()
 
   // Listen for authentication state changes
   useEffect(() => {
@@ -78,6 +82,11 @@ function App() {
 
   const handleAddBoard = () => {
     setIsCreatingBoard(true)
+  }
+
+  const handleEditBoard = (boardId: string) => {
+    setEditingBoardId(boardId)
+    openModal()
   }
 
   const handleCreateBoard = async (newBoard: Omit<BoardType, 'id' | 'createdAt' | 'createdBy' | 'members'>) => {
@@ -327,6 +336,7 @@ function App() {
         onSelectBoard={setCurrentBoardId}
         onAddBoard={handleAddBoard}
         onDeleteBoard={handleDeleteBoard}
+        onEditBoard={handleEditBoard}
         onImportFromTrello={handleImportFromTrello}
         user={user}
         onSignOut={handleSignOut}
@@ -352,6 +362,14 @@ function App() {
           userId={user.uid}
           onImportComplete={handleImportComplete}
           onCancel={() => setIsImportingFromTrello(false)}
+        />
+      )}
+
+      {editingBoardId && (
+        <BoardEditor
+          board={boards.find(board => board.id === editingBoardId)!}
+          onUpdateBoard={handleUpdateBoard}
+          onClose={() => setEditingBoardId(null)}
         />
       )}
     </div>

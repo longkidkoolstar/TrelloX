@@ -9,6 +9,7 @@ interface HeaderProps {
   onSelectBoard: (boardId: string) => void;
   onAddBoard: () => void;
   onDeleteBoard?: (boardId: string) => void;
+  onEditBoard?: (boardId: string) => void;
   onImportFromTrello?: () => void;
   user: User;
   onSignOut: () => void;
@@ -21,6 +22,7 @@ const Header: React.FC<HeaderProps> = ({
   onSelectBoard,
   onAddBoard,
   onDeleteBoard,
+  onEditBoard,
   onImportFromTrello,
   user,
   onSignOut,
@@ -41,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({
           onSelectBoard={onSelectBoard}
           onAddBoard={onAddBoard}
           onDeleteBoard={onDeleteBoard}
+          onEditBoard={onEditBoard}
         />
       </div>
       <div className="header-user">
