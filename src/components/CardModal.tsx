@@ -42,6 +42,10 @@ const CardModal: React.FC<CardModalProps> = ({
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
   const [newCheckItemText, setNewCheckItemText] = useState('');
+  const [editingChecklistTitleId, setEditingChecklistTitleId] = useState<string | null>(null);
+  const [editedChecklistTitle, setEditedChecklistTitle] = useState('');
+  const [editingCheckItemId, setEditingCheckItemId] = useState<string | null>(null);
+  const [editedCheckItemText, setEditedCheckItemText] = useState('');
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.target.value);
@@ -211,6 +215,68 @@ const CardModal: React.FC<CardModalProps> = ({
     }) || [];
 
     onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+  };
+
+  const handleEditChecklistTitle = (checklistId: string) => {
+    const checklist = card.checklists?.find(cl => cl.id === checklistId);
+    if (checklist) {
+      setEditingChecklistTitleId(checklistId);
+      setEditedChecklistTitle(checklist.title);
+    }
+  };
+
+  const handleSaveChecklistTitle = (checklistId: string) => {
+    if (!editedChecklistTitle.trim()) return;
+
+    const updatedChecklists = card.checklists?.map(checklist => {
+      if (checklist.id === checklistId) {
+        return {
+          ...checklist,
+          title: editedChecklistTitle.trim()
+        };
+      }
+      return checklist;
+    }) || [];
+
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+    setEditingChecklistTitleId(null);
+  };
+
+  const handleEditCheckItem = (checklistId: string, checkItemId: string) => {
+    const checklist = card.checklists?.find(cl => cl.id === checklistId);
+    const checkItem = checklist?.items.find(item => item.id === checkItemId);
+    
+    if (checklist && checkItem) {
+      setEditingCheckItemId(checkItemId);
+      setEditedCheckItemText(checkItem.name);
+    }
+  };
+
+  const handleSaveCheckItem = (checklistId: string, checkItemId: string) => {
+    if (!editedCheckItemText.trim()) return;
+
+    const updatedChecklists = card.checklists?.map(checklist => {
+      if (checklist.id === checklistId) {
+        const updatedItems = checklist.items.map(item => {
+          if (item.id === checkItemId) {
+            return {
+              ...item,
+              name: editedCheckItemText.trim()
+            };
+          }
+          return item;
+        });
+
+        return {
+          ...checklist,
+          items: updatedItems
+        };
+      }
+      return checklist;
+    }) || [];
+
+    onUpdateCard(listId, card.id, { checklists: updatedChecklists });
+    setEditingCheckItemId(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -392,7 +458,38 @@ const CardModal: React.FC<CardModalProps> = ({
                   {card.checklists.map(checklist => (
                     <div key={checklist.id} className="card-modal-checklist">
                       <div className="card-modal-checklist-header">
-                        <h4 className="card-modal-checklist-title">{checklist.title}</h4>
+                        {editingChecklistTitleId === checklist.id ? (
+                          <div className="card-modal-checklist-title-edit">
+                            <input
+                              type="text"
+                              value={editedChecklistTitle}
+                              onChange={(e) => setEditedChecklistTitle(e.target.value)}
+                              className="card-modal-checklist-title-input"
+                              autoFocus
+                            />
+                            <div className="card-modal-checklist-title-actions">
+                              <button
+                                className="card-modal-save-button"
+                                onClick={() => handleSaveChecklistTitle(checklist.id)}
+                              >
+                                Save
+                              </button>
+                              <button
+                                className="card-modal-cancel-button"
+                                onClick={() => setEditingChecklistTitleId(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <h4 
+                            className="card-modal-checklist-title"
+                            onClick={() => handleEditChecklistTitle(checklist.id)}
+                          >
+                            {checklist.title}
+                          </h4>
+                        )}
                         <button
                           className="card-modal-checklist-delete"
                           onClick={() => handleDeleteChecklist(checklist.id)}
@@ -410,9 +507,38 @@ const CardModal: React.FC<CardModalProps> = ({
                               onChange={() => handleToggleCheckItem(checklist.id, item.id)}
                               className="card-modal-checklist-item-checkbox"
                             />
-                            <span className={`card-modal-checklist-item-text ${item.state === 'complete' ? 'completed' : ''}`}>
-                              {item.name}
-                            </span>
+                            {editingCheckItemId === item.id ? (
+                              <div className="card-modal-checklist-item-edit">
+                                <input
+                                  type="text"
+                                  value={editedCheckItemText}
+                                  onChange={(e) => setEditedCheckItemText(e.target.value)}
+                                  className="card-modal-checklist-item-input"
+                                  autoFocus
+                                />
+                                <div className="card-modal-checklist-item-edit-actions">
+                                  <button
+                                    className="card-modal-save-button"
+                                    onClick={() => handleSaveCheckItem(checklist.id, item.id)}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    className="card-modal-cancel-button"
+                                    onClick={() => setEditingCheckItemId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <span 
+                                className={`card-modal-checklist-item-text ${item.state === 'complete' ? 'completed' : ''}`}
+                                onClick={() => handleEditCheckItem(checklist.id, item.id)}
+                              >
+                                {item.name}
+                              </span>
+                            )}
                             <button
                               className="card-modal-checklist-item-delete"
                               onClick={() => handleDeleteCheckItem(checklist.id, item.id)}
