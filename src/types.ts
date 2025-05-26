@@ -67,6 +67,29 @@ export interface List {
   createdBy?: string;
 }
 
+export type BoardPermission = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface BoardMember {
+  userId: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  permission: BoardPermission;
+  joinedAt: string;
+}
+
+export interface BoardInvitation {
+  id: string;
+  boardId: string;
+  boardTitle: string;
+  inviterEmail: string;
+  inviterName?: string;
+  inviteeEmail: string;
+  permission: BoardPermission;
+  createdAt: string;
+  status: 'pending' | 'accepted' | 'declined';
+}
+
 export interface Board {
   id: string;
   title: string;
@@ -75,7 +98,8 @@ export interface Board {
   backgroundImage?: string;
   createdAt: string;
   createdBy: string;
-  members: string[]; // Array of user IDs who have access to this board
+  members: string[]; // Array of user IDs who have access to this board (for backward compatibility)
+  boardMembers?: BoardMember[]; // Detailed member information with permissions
   stickyNotes?: StickyNote[]; // Sticky notes that can be placed anywhere on the board
 }
 

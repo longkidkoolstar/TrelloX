@@ -1,0 +1,352 @@
+.board-sharing-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.board-sharing-modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.board-sharing-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.board-sharing-modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.board-sharing-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.board-sharing-modal-close:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.board-sharing-modal-content {
+  padding: 20px;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+}
+
+.board-sharing-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #fcc;
+}
+
+.board-sharing-success {
+  background-color: #efe;
+  color: #363;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #cfc;
+}
+
+.board-sharing-add-member {
+  margin-bottom: 30px;
+}
+
+.board-sharing-add-member h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.board-sharing-search {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.board-sharing-search-input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.board-sharing-search-input:focus {
+  outline: none;
+  border-color: #0079bf;
+}
+
+.board-sharing-clear-search {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-sharing-clear-search:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.board-sharing-searching {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 12px;
+}
+
+.board-sharing-search-results {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.board-sharing-search-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.board-sharing-search-result:last-child {
+  border-bottom: none;
+}
+
+.board-sharing-search-result:hover {
+  background-color: #f8f9fa;
+}
+
+.board-sharing-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.board-sharing-user-avatar,
+.board-sharing-member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.board-sharing-user-name,
+.board-sharing-member-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.board-sharing-user-email,
+.board-sharing-member-email {
+  font-size: 12px;
+  color: #666;
+}
+
+.board-sharing-add-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.board-sharing-permission-select {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.board-sharing-permission-select:focus {
+  outline: none;
+  border-color: #0079bf;
+}
+
+.board-sharing-members h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.board-sharing-loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.board-sharing-members-list {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.board-sharing-member {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.board-sharing-member:last-child {
+  border-bottom: none;
+}
+
+.board-sharing-member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.board-sharing-member-joined {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.board-sharing-member-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.board-sharing-remove-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.board-sharing-remove-btn:hover {
+  background-color: #c82333;
+}
+
+.board-sharing-permission-display {
+  text-align: right;
+}
+
+.board-sharing-permission-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.board-sharing-permission-badge.owner {
+  background-color: #28a745;
+  color: white;
+}
+
+.board-sharing-permission-badge.admin {
+  background-color: #007bff;
+  color: white;
+}
+
+.board-sharing-permission-badge.member {
+  background-color: #6c757d;
+  color: white;
+}
+
+.board-sharing-permission-badge.viewer {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.board-sharing-permission-desc {
+  font-size: 10px;
+  color: #666;
+  max-width: 150px;
+  text-align: right;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .board-sharing-modal {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .board-sharing-modal-header {
+    padding: 16px;
+  }
+
+  .board-sharing-modal-content {
+    padding: 16px;
+  }
+
+  .board-sharing-member {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .board-sharing-member-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .board-sharing-search-result {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .board-sharing-add-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

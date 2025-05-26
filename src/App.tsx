@@ -6,6 +6,7 @@ import BoardCreator from './components/BoardCreator'
 import BoardEditor from './components/BoardEditor'
 import AuthContainer from './components/AuthContainer'
 import TrelloImport from './components/TrelloImport'
+import BoardSharingModal from './components/BoardSharingModal'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
@@ -20,6 +21,7 @@ function App() {
   const [isCreatingBoard, setIsCreatingBoard] = useState(false)
   const [isImportingFromTrello, setIsImportingFromTrello] = useState(false)
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null)
+  const [sharingBoardId, setSharingBoardId] = useState<string | null>(null)
   const [headerColor, setHeaderColor] = useState<string>('#026aa7') // Default Trello-like blue
   const { openModal } = useModalContext()
 
@@ -75,6 +77,20 @@ function App() {
       setBoards(boards.map(board =>
         board.id === updatedBoard.id ? updatedBoard : board
       ))
+
+      // If this is the current board, make sure we have the latest data
+      if (updatedBoard.id === currentBoardId) {
+        // Force a refresh of the current board to ensure we have the latest member data
+        const { getBoardById } = await import('./firebase/firestore');
+        const latestBoard = await getBoardById(updatedBoard.id);
+        if (latestBoard) {
+          setBoards(prevBoards =>
+            prevBoards.map(board =>
+              board.id === latestBoard.id ? latestBoard : board
+            )
+          );
+        }
+      }
     } catch (error) {
       console.error('Error updating board:', error)
     }
@@ -87,6 +103,10 @@ function App() {
   const handleEditBoard = (boardId: string) => {
     setEditingBoardId(boardId)
     openModal()
+  }
+
+  const handleShareBoard = (boardId: string) => {
+    setSharingBoardId(boardId)
   }
 
   const handleCreateBoard = async (newBoard: Omit<BoardType, 'id' | 'createdAt' | 'createdBy' | 'members'>) => {
@@ -337,6 +357,7 @@ function App() {
         onAddBoard={handleAddBoard}
         onDeleteBoard={handleDeleteBoard}
         onEditBoard={handleEditBoard}
+        onShareBoard={handleShareBoard}
         onImportFromTrello={handleImportFromTrello}
         user={user}
         onSignOut={handleSignOut}
@@ -370,6 +391,14 @@ function App() {
           board={boards.find(board => board.id === editingBoardId)!}
           onUpdateBoard={handleUpdateBoard}
           onClose={() => setEditingBoardId(null)}
+        />
+      )}
+
+      {sharingBoardId && (
+        <BoardSharingModal
+          board={boards.find(board => board.id === sharingBoardId)!}
+          onClose={() => setSharingBoardId(null)}
+          onBoardUpdate={handleUpdateBoard}
         />
       )}
     </div>

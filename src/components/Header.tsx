@@ -10,6 +10,7 @@ interface HeaderProps {
   onAddBoard: () => void;
   onDeleteBoard?: (boardId: string) => void;
   onEditBoard?: (boardId: string) => void;
+  onShareBoard?: (boardId: string) => void;
   onImportFromTrello?: () => void;
   user: User;
   onSignOut: () => void;
@@ -23,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({
   onAddBoard,
   onDeleteBoard,
   onEditBoard,
+  onShareBoard,
   onImportFromTrello,
   user,
   onSignOut,
@@ -45,6 +47,16 @@ const Header: React.FC<HeaderProps> = ({
           onDeleteBoard={onDeleteBoard}
           onEditBoard={onEditBoard}
         />
+        {currentBoardId && onShareBoard && (
+          <button
+            className="share-board-button"
+            onClick={() => onShareBoard(currentBoardId)}
+            title="Share board"
+          >
+            <i className="fas fa-share-alt"></i>
+            Share
+          </button>
+        )}
       </div>
       <div className="header-user">
         {onImportFromTrello && (
