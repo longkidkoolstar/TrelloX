@@ -20,6 +20,7 @@ const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete }) => 
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const { isModalOpen } = useModalContext();
 
   // Configure drag
@@ -31,6 +32,9 @@ const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete }) => 
       isDragging: monitor.isDragging(),
     }),
   });
+
+  // Connect the drag ref
+  drag(ref);
 
   // Focus textarea when editing starts and select all text if it has default content
   useEffect(() => {
@@ -96,7 +100,7 @@ const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete }) => 
 
   return (
     <div
-      ref={drag}
+      ref={ref}
       className={`sticky-note sticky-note-${note.color}`}
       style={{
         left: `${note.position.x}px`,
