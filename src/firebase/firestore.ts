@@ -14,7 +14,7 @@ import {
   arrayRemove
 } from 'firebase/firestore';
 import { db } from './config';
-import { Board, List, Card, FirestoreTimestamp, User, BoardMember, BoardInvitation, BoardPermission } from '../types';
+import { Board, List, Card, FirestoreTimestamp, User, BoardMember, BoardPermission } from '../types';
 import { getCurrentUser } from './auth';
 
 // Convert Firestore timestamp to string
@@ -607,7 +607,6 @@ export const moveCard = async (
 
 // Collections
 const usersCollection = collection(db, 'users');
-const invitationsCollection = collection(db, 'invitations');
 
 // Search users by email
 export const searchUsersByEmail = async (email: string): Promise<User[]> => {
