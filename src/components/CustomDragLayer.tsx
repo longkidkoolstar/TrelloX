@@ -1,14 +1,15 @@
 import React from 'react';
 import { useDragLayer, XYCoord } from 'react-dnd';
 import { ItemTypes } from './DragTypes';
-import { Card as CardType, List as ListType } from '../types';
+import { Card as CardType, List as ListType, StickyNote as StickyNoteType } from '../types';
 import './CustomDragLayer.css';
 
 interface CustomDragLayerProps {
   lists: ListType[];
+  stickyNotes?: StickyNoteType[];
 }
 
-const CustomDragLayer: React.FC<CustomDragLayerProps> = ({ lists }) => {
+const CustomDragLayer: React.FC<CustomDragLayerProps> = ({ lists, stickyNotes = [] }) => {
   const { itemType, isDragging, item, initialOffset, currentOffset } = useDragLayer((monitor) => ({
     item: monitor.getItem(),
     itemType: monitor.getItemType(),
@@ -47,6 +48,12 @@ const CustomDragLayer: React.FC<CustomDragLayerProps> = ({ lists }) => {
         if (!list) return null;
 
         return <ListDragPreview list={list} />;
+
+      case ItemTypes.STICKY_NOTE:
+        const note = stickyNotes.find(n => n.id === item.id);
+        if (!note) return null;
+
+        return <StickyNoteDragPreview note={note} />;
 
       default:
         return null;
@@ -152,6 +159,18 @@ const ListDragPreview: React.FC<ListDragPreviewProps> = ({ list }) => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+interface StickyNoteDragPreviewProps {
+  note: StickyNoteType;
+}
+
+const StickyNoteDragPreview: React.FC<StickyNoteDragPreviewProps> = ({ note }) => {
+  return (
+    <div className={`drag-sticky-note drag-sticky-note-${note.color}`} style={{ transform: `rotate(${note.rotation || 0}deg)` }}>
+      <div className="sticky-note-content">{note.content}</div>
     </div>
   );
 };

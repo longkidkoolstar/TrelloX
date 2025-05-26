@@ -1,4 +1,5 @@
 export type LabelColor = 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'blue';
+export type StickyNoteColor = 'yellow' | 'green' | 'blue' | 'pink';
 
 export interface User {
   uid: string;
@@ -75,6 +76,20 @@ export interface Board {
   createdAt: string;
   createdBy: string;
   members: string[]; // Array of user IDs who have access to this board
+  stickyNotes?: StickyNote[]; // Sticky notes that can be placed anywhere on the board
+}
+
+export interface StickyNote {
+  id: string;
+  content: string;
+  color: StickyNoteColor;
+  position: {
+    x: number;
+    y: number;
+  };
+  rotation?: number;
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface FirestoreTimestamp {

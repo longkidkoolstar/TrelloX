@@ -2,6 +2,7 @@
 export const ItemTypes = {
   CARD: 'card',
   LIST: 'list',
+  STICKY_NOTE: 'sticky-note',
 };
 
 // Define interfaces for draggable items
@@ -20,4 +21,9 @@ export interface CardDragItem extends DragItem {
 export interface ListDragItem extends DragItem {
   type: typeof ItemTypes.LIST;
   title: string;
+}
+
+export interface StickyNoteDragItem extends DragItem {
+  type: typeof ItemTypes.STICKY_NOTE;
+  position: { x: number; y: number };
 }

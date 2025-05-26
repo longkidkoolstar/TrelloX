@@ -12,6 +12,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  position: relative; /* Required for absolute positioning of sticky notes */
 }
 
 .board-lists {
