@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board as BoardType, List as ListType, Card as CardType, StickyNote as StickyNoteType } from '../types';
+import { Board as BoardType, List as ListType, Card as CardType, StickyNote as StickyNoteType, BoardMember } from '../types';
 import DraggableList from './DraggableList';
 import CustomDragLayer from './CustomDragLayer';
 import StickyNote from './StickyNote';
@@ -8,6 +8,7 @@ import ContextMenu, { ContextMenuItem } from './ContextMenu';
 import { ItemTypes } from './DragTypes';
 import { useDrop } from 'react-dnd';
 import { getCurrentUser } from '../firebase/auth';
+import { getUserProfiles, migrateBoardMembers, migrateStickyNotes } from '../firebase/firestore';
 import './Board.css';
 
 interface DraggableBoardProps {
@@ -22,7 +23,43 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
   const [newListTitle, setNewListTitle] = useState('');
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [boardMembers, setBoardMembers] = useState<BoardMember[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
+
+  // Backwards compatibility: Build board members from members array if boardMembers is missing
+  useEffect(() => {
+    const buildBoardMembers = async () => {
+      if (board.boardMembers && board.boardMembers.length > 0) {
+        // Use existing boardMembers if available
+        setBoardMembers(board.boardMembers);
+      } else if (board.members && board.members.length > 0) {
+        // Backwards compatibility: Build boardMembers from members array
+        try {
+          // Attempt to migrate the board data in Firestore for future use
+          await migrateBoardMembers(board.id);
+          await migrateStickyNotes(board.id);
+
+          const userProfiles = await getUserProfiles(board.members);
+          const constructedBoardMembers: BoardMember[] = userProfiles.map(user => ({
+            userId: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            permission: user.uid === board.createdBy ? 'owner' : 'member',
+            joinedAt: user.uid === board.createdBy ? board.createdAt : new Date().toISOString()
+          }));
+          setBoardMembers(constructedBoardMembers);
+        } catch (error) {
+          console.error('Error building board members for backwards compatibility:', error);
+          setBoardMembers([]);
+        }
+      } else {
+        setBoardMembers([]);
+      }
+    };
+
+    buildBoardMembers();
+  }, [board.boardMembers, board.members, board.createdBy, board.createdAt, board.id]);
 
   // Update the board when lists or sticky notes change
   useEffect(() => {
@@ -311,6 +348,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
           note={note}
           onUpdate={handleUpdateStickyNote}
           onDelete={handleDeleteStickyNote}
+          boardMembers={boardMembers}
         />
       ))}
 

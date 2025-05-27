@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
-import { StickyNote as StickyNoteType } from '../types';
+import { StickyNote as StickyNoteType, BoardMember } from '../types';
 import { useModalContext } from '../context/ModalContext';
 import ContextMenu, { ContextMenuItem } from './ContextMenu';
 import { ItemTypes } from './DragTypes';
@@ -10,18 +10,66 @@ interface StickyNoteProps {
   note: StickyNoteType;
   onUpdate: (noteId: string, updatedNote: Partial<StickyNoteType>) => void;
   onDelete: (noteId: string) => void;
+  boardMembers?: BoardMember[];
 }
 
-const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete }) => {
+const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete, boardMembers = [] }) => {
   // Automatically enter edit mode if this is a sticky note with default content
   const isDefaultContent = note.content === 'New sticky note' || note.content === 'Sticky note';
   const [isEditing, setIsEditing] = useState(isDefaultContent);
   const [content, setContent] = useState(isDefaultContent ? '' : note.content);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const { isModalOpen } = useModalContext();
+
+  // Helper functions for creator attribution
+  const shouldShowCreatorIndicator = () => {
+    // Only show when board has multiple members
+    // For backwards compatibility, show indicators even if createdBy is missing
+    return boardMembers.length > 1;
+  };
+
+  const getCreatorInfo = () => {
+    if (!note.createdBy) return null;
+    return boardMembers.find(member => member.userId === note.createdBy);
+  };
+
+  const getCreatorDisplayName = () => {
+    const creator = getCreatorInfo();
+    if (!creator) {
+      // Backwards compatibility: If no creator found, show generic message
+      return note.createdBy ? 'Unknown User' : 'Legacy Note';
+    }
+    return creator.displayName || creator.email || 'Unknown User';
+  };
+
+  const getCreatorInitials = () => {
+    const creator = getCreatorInfo();
+    if (!creator) {
+      // Backwards compatibility: Show different icon for legacy notes
+      return note.createdBy ? '?' : '📝';
+    }
+
+    if (creator.displayName && creator.displayName.trim()) {
+      return creator.displayName
+        .trim()
+        .split(' ')
+        .filter(name => name.length > 0)
+        .map(name => name.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    }
+
+    if (creator.email && creator.email.trim()) {
+      return creator.email.charAt(0).toUpperCase();
+    }
+
+    return '?';
+  };
 
   // Configure drag
   const [{ isDragging }, drag] = useDrag({
@@ -143,6 +191,35 @@ const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onDelete }) => 
       >
         ×
       </button>
+
+      {/* Creator Attribution Indicator */}
+      {shouldShowCreatorIndicator() && (
+        <div
+          className="sticky-note-creator-indicator"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          {getCreatorInfo()?.photoURL && !imageLoadError ? (
+            <img
+              src={getCreatorInfo()!.photoURL}
+              alt={getCreatorDisplayName()}
+              className="sticky-note-creator-avatar"
+              onError={() => setImageLoadError(true)}
+            />
+          ) : (
+            <div className="sticky-note-creator-initials">
+              {getCreatorInitials()}
+            </div>
+          )}
+
+          {/* Tooltip */}
+          {showTooltip && (
+            <div className="sticky-note-creator-tooltip">
+              Created by {getCreatorDisplayName()}
+            </div>
+          )}
+        </div>
+      )}
 
       {showContextMenu && (
         <ContextMenu

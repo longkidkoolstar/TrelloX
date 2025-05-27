@@ -862,6 +862,76 @@ export const getBoardMembers = async (boardId: string): Promise<BoardMember[]> =
   }
 };
 
+// Migration function to update boards with missing boardMembers data
+export const migrateBoardMembers = async (boardId: string): Promise<void> => {
+  try {
+    const boardRef = doc(boardsCollection, boardId);
+    const boardDoc = await getDoc(boardRef);
+
+    if (!boardDoc.exists()) throw new Error('Board not found');
+
+    const board = boardDoc.data() as Board;
+
+    // Only migrate if boardMembers is missing but members array exists
+    if ((!board.boardMembers || board.boardMembers.length === 0) && board.members && board.members.length > 0) {
+      console.log(`Migrating board members for board: ${boardId}`);
+
+      const userProfiles = await getUserProfiles(board.members);
+      const boardMembers: BoardMember[] = userProfiles.map(user => ({
+        userId: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        permission: user.uid === board.createdBy ? 'owner' as BoardPermission : 'member' as BoardPermission,
+        joinedAt: user.uid === board.createdBy ? board.createdAt : new Date().toISOString()
+      }));
+
+      // Update the board with the new boardMembers data
+      await updateDoc(boardRef, { boardMembers });
+      console.log(`Successfully migrated ${boardMembers.length} board members for board: ${boardId}`);
+    }
+  } catch (error) {
+    console.error('Error migrating board members:', error);
+  }
+};
+
+// Migration function to update sticky notes with missing createdBy field
+export const migrateStickyNotes = async (boardId: string): Promise<void> => {
+  try {
+    const boardRef = doc(boardsCollection, boardId);
+    const boardDoc = await getDoc(boardRef);
+
+    if (!boardDoc.exists()) throw new Error('Board not found');
+
+    const board = boardDoc.data() as Board;
+
+    if (board.stickyNotes && board.stickyNotes.length > 0) {
+      let hasLegacyNotes = false;
+      const updatedStickyNotes = board.stickyNotes.map(note => {
+        if (!note.createdBy) {
+          hasLegacyNotes = true;
+          // For legacy notes, we can't determine the creator, so we'll leave it empty
+          // The UI will handle this gracefully by showing a "Legacy Note" indicator
+          return {
+            ...note,
+            createdBy: '', // Empty string to indicate legacy note
+            createdAt: note.createdAt || new Date().toISOString()
+          };
+        }
+        return note;
+      });
+
+      if (hasLegacyNotes) {
+        console.log(`Migrating sticky notes for board: ${boardId}`);
+        await updateDoc(boardRef, { stickyNotes: updatedStickyNotes });
+        console.log(`Successfully migrated sticky notes for board: ${boardId}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error migrating sticky notes:', error);
+  }
+};
+
 // Check if user has permission to perform action on board
 export const checkBoardPermission = async (
   boardId: string,
