@@ -24,6 +24,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [boardMembers, setBoardMembers] = useState<BoardMember[]>([]);
+  const [isLocalUpdate, setIsLocalUpdate] = useState(false); // Track if update is from local user
   const boardRef = useRef<HTMLDivElement>(null);
 
   // Backwards compatibility: Build board members from members array if boardMembers is missing
@@ -61,26 +62,35 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
     buildBoardMembers();
   }, [board.boardMembers, board.members, board.createdBy, board.createdAt, board.id]);
 
-  // Update the board when lists or sticky notes change
+  // Update the board when lists or sticky notes change (only for local updates)
   useEffect(() => {
-    onUpdateBoard({
-      ...board,
-      lists,
-      stickyNotes
-    });
-  }, [lists, stickyNotes]);
+    if (isLocalUpdate) {
+      onUpdateBoard({
+        ...board,
+        lists,
+        stickyNotes
+      });
 
-  // Update local lists and sticky notes when board changes
+      // Reset the flag after update
+      setTimeout(() => setIsLocalUpdate(false), 100);
+    }
+  }, [lists, stickyNotes, isLocalUpdate]);
+
+  // Update local lists and sticky notes when board changes from real-time updates
   useEffect(() => {
-    setLists(board.lists);
-    setStickyNotes(board.stickyNotes || []);
-  }, [board.id]);
+    // Only update if this is a real-time update (not a local update)
+    if (!isLocalUpdate) {
+      setLists(board.lists);
+      setStickyNotes(board.stickyNotes || []);
+    }
+  }, [board.lists, board.stickyNotes, board.id, isLocalUpdate]);
 
   const moveList = (dragIndex: number, hoverIndex: number) => {
     const draggedList = lists[dragIndex];
     const newLists = [...lists];
     newLists.splice(dragIndex, 1);
     newLists.splice(hoverIndex, 0, draggedList);
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
@@ -117,6 +127,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       newLists[targetListIndex] = targetList;
     }
 
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
@@ -127,6 +138,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
         title: newListTitle,
         cards: [],
       };
+      setIsLocalUpdate(true);
       setLists([...lists, newList]);
       setNewListTitle('');
       setIsAddingList(false);
@@ -156,6 +168,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       return list;
     });
 
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
@@ -170,10 +183,12 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       return list;
     });
 
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
   const handleDeleteList = (listId: string) => {
+    setIsLocalUpdate(true);
     setLists(lists.filter((list) => list.id !== listId));
   };
 
@@ -188,6 +203,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       return list;
     });
 
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
@@ -210,6 +226,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       return list;
     });
 
+    setIsLocalUpdate(true);
     setLists(newLists);
   };
 
@@ -257,6 +274,7 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       createdBy: user.uid
     };
 
+    setIsLocalUpdate(true);
     setStickyNotes([...stickyNotes, newStickyNote]);
   };
 
@@ -269,11 +287,13 @@ const DraggableBoard: React.FC<DraggableBoardProps> = ({ board, onUpdateBoard })
       return note;
     });
 
+    setIsLocalUpdate(true);
     setStickyNotes(newStickyNotes);
   };
 
   // Delete a sticky note
   const handleDeleteStickyNote = (noteId: string) => {
+    setIsLocalUpdate(true);
     setStickyNotes(stickyNotes.filter(note => note.id !== noteId));
   };
 
