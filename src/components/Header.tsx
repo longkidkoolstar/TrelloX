@@ -1,6 +1,7 @@
 import React from 'react';
 import { Board, User } from '../types';
 import BoardSelector from './BoardSelector';
+import PresenceIndicators from './PresenceIndicators';
 import './Header.css';
 
 interface HeaderProps {
@@ -47,6 +48,9 @@ const Header: React.FC<HeaderProps> = ({
           onDeleteBoard={onDeleteBoard}
           onEditBoard={onEditBoard}
         />
+        {currentBoardId && (
+          <PresenceIndicators boardId={currentBoardId} />
+        )}
         {currentBoardId && onShareBoard && (
           <button
             className="share-board-button"

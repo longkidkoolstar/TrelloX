@@ -12,6 +12,7 @@ import { onAuthStateChange, signOutUser } from './firebase/auth'
 import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
 import { getDominantColor, darkenColor } from './utils/colorUtils'
 import { useModalContext } from './context/ModalContext'
+import { presenceService } from './services/presenceService'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -125,6 +126,9 @@ function App() {
 
   const handleSignOut = async () => {
     try {
+      // Clean up presence before signing out
+      await presenceService.stopPresence()
+
       await signOutUser()
       setBoards([])
       setCurrentBoardId('')
@@ -310,6 +314,28 @@ function App() {
   }
 
   const currentBoard = boards.find(board => board.id === currentBoardId) || null
+
+  // Manage user presence when board changes
+  useEffect(() => {
+    if (user && currentBoardId) {
+      // Start presence tracking for the current board
+      presenceService.startPresence(currentBoardId);
+    }
+
+    // Cleanup function to stop presence when component unmounts or board changes
+    return () => {
+      if (presenceService.getCurrentBoardId() === currentBoardId) {
+        presenceService.stopPresence();
+      }
+    };
+  }, [user, currentBoardId]);
+
+  // Cleanup presence when user signs out
+  useEffect(() => {
+    if (!user) {
+      presenceService.stopPresence();
+    }
+  }, [user]);
 
   // Update header color when current board changes
   useEffect(() => {

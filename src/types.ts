@@ -121,3 +121,17 @@ export interface FirestoreTimestamp {
   nanoseconds: number;
 }
 
+export interface UserPresence {
+  userId: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  lastSeen: string;
+  isActive: boolean;
+  boardId: string;
+}
+
+export interface BoardPresence {
+  [userId: string]: UserPresence;
+}
+

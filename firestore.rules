@@ -36,5 +36,14 @@ service cloud.firestore {
       allow delete: if request.auth != null &&
         resource.data.inviterEmail == request.auth.token.email;
     }
+
+    match /boardPresence/{boardId}/users/{userId} {
+      // Allow users to manage their own presence
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+      // Allow board members to read presence of other members
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/boards/$(boardId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/boards/$(boardId)).data.members;
+    }
   }
 }

@@ -1,0 +1,178 @@
+.presence-indicators {
+  display: flex;
+  align-items: center;
+  margin-right: 12px;
+}
+
+.presence-avatars {
+  display: flex;
+  align-items: center;
+  gap: -8px; /* Negative gap to create overlap */
+}
+
+.presence-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, z-index 0.2s ease;
+  z-index: 1;
+}
+
+.presence-avatar:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.presence-avatar:not(:first-child) {
+  margin-left: -8px; /* Create overlap effect */
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-initials {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.more-users .avatar-initials {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  color: #2d3436;
+  font-size: 10px;
+}
+
+.presence-indicator {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  z-index: 2;
+}
+
+.presence-indicator.active {
+  background-color: #00b894; /* Green for active */
+  animation: pulse 2s infinite;
+}
+
+.presence-indicator.away {
+  background-color: #fdcb6e; /* Yellow for away */
+}
+
+.presence-indicator.offline {
+  background-color: #636e72; /* Gray for offline */
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(0, 184, 148, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 184, 148, 0);
+  }
+}
+
+/* Tooltip styling enhancement */
+.presence-avatar[title] {
+  position: relative;
+}
+
+.presence-avatar[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 5px;
+  pointer-events: none;
+}
+
+.presence-avatar[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  margin-bottom: 1px;
+  pointer-events: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .presence-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .avatar-initials {
+    font-size: 10px;
+  }
+  
+  .more-users .avatar-initials {
+    font-size: 8px;
+  }
+  
+  .presence-indicator {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .presence-avatar {
+    border-color: #2d3436;
+  }
+  
+  .avatar-initials {
+    color: white;
+  }
+  
+  .presence-indicator {
+    border-color: #2d3436;
+  }
+  
+  .presence-avatar[title]:hover::after {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: black;
+  }
+  
+  .presence-avatar[title]:hover::before {
+    border-top-color: rgba(255, 255, 255, 0.9);
+  }
+}
