@@ -105,7 +105,7 @@
 .presence-avatar[title]:hover::after {
   content: attr(title);
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.9);
@@ -115,20 +115,21 @@
   font-size: 12px;
   white-space: nowrap;
   z-index: 1000;
-  margin-bottom: 5px;
+  margin-top: 8px;
   pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .presence-avatar[title]:hover::before {
   content: '';
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 4px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.9);
   z-index: 1000;
-  margin-bottom: 1px;
+  margin-top: 4px;
   pointer-events: none;
 }
 
@@ -138,15 +139,15 @@
     width: 28px;
     height: 28px;
   }
-  
+
   .avatar-initials {
     font-size: 10px;
   }
-  
+
   .more-users .avatar-initials {
     font-size: 8px;
   }
-  
+
   .presence-indicator {
     width: 8px;
     height: 8px;
@@ -158,21 +159,21 @@
   .presence-avatar {
     border-color: #2d3436;
   }
-  
+
   .avatar-initials {
     color: white;
   }
-  
+
   .presence-indicator {
     border-color: #2d3436;
   }
-  
+
   .presence-avatar[title]:hover::after {
     background-color: rgba(255, 255, 255, 0.9);
     color: black;
   }
-  
+
   .presence-avatar[title]:hover::before {
-    border-top-color: rgba(255, 255, 255, 0.9);
+    border-bottom-color: rgba(255, 255, 255, 0.9);
   }
 }
