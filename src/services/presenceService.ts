@@ -4,9 +4,7 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
+  serverTimestamp} from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentUser } from '../firebase/auth';
 import { UserPresence, BoardPresence } from '../types';

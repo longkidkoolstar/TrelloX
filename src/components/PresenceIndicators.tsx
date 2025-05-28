@@ -14,7 +14,7 @@ const PresenceIndicators: React.FC<PresenceIndicatorsProps> = ({
   maxVisible = 5 
 }) => {
   const [presence, setPresence] = useState<BoardPresence>({});
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser] = useState(getCurrentUser());
 
   useEffect(() => {
     if (!boardId) return;
