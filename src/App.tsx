@@ -7,14 +7,12 @@ import BoardEditor from './components/BoardEditor'
 import AuthContainer from './components/AuthContainer'
 import TrelloImport from './components/TrelloImport'
 import BoardSharingModal from './components/BoardSharingModal'
-import SyncStatus from './components/SyncStatus'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, signOutUser } from './firebase/auth'
-import { createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
+import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
 import { getDominantColor, darkenColor } from './utils/colorUtils'
 import { useModalContext } from './context/ModalContext'
 import { presenceService } from './services/presenceService'
-import { realtimeBoardService } from './services/realtimeBoardService'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -26,8 +24,6 @@ function App() {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null)
   const [sharingBoardId, setSharingBoardId] = useState<string | null>(null)
   const [headerColor, setHeaderColor] = useState<string>('#026aa7') // Default Trello-like blue
-  const [isUpdatingBoard, setIsUpdatingBoard] = useState(false) // Track if we're updating to prevent loops
-  const [lastSyncTime, setLastSyncTime] = useState<Date | undefined>(undefined)
   const { openModal } = useModalContext()
 
   // Listen for authentication state changes
@@ -40,90 +36,64 @@ function App() {
     return () => unsubscribe()
   }, [])
 
-  // Subscribe to real-time board updates when user is authenticated
+  // Load boards from Firestore when user is authenticated
   useEffect(() => {
-    if (user) {
-      console.log('Setting up real-time board subscription for user:', user.uid);
+    const loadUserBoards = async () => {
+      if (user) {
+        try {
+          console.log('Loading boards for user:', user.uid);
+          const loadedBoards = await getUserBoards();
+          console.log('Loaded boards:', loadedBoards);
 
-      const unsubscribe = realtimeBoardService.subscribeToUserBoards((loadedBoards) => {
-        console.log('Real-time boards update:', loadedBoards);
+          if (loadedBoards && loadedBoards.length > 0) {
+            setBoards(loadedBoards);
 
-        if (loadedBoards && loadedBoards.length > 0) {
-          setBoards(loadedBoards);
-
-          // Set the current board to the first board if no board is currently selected
-          if (!currentBoardId || !loadedBoards.find(board => board.id === currentBoardId)) {
-            setCurrentBoardId(loadedBoards[0].id);
+            // Set the current board to the first board if no board is currently selected
+            if (!currentBoardId || !loadedBoards.find(board => board.id === currentBoardId)) {
+              setCurrentBoardId(loadedBoards[0].id);
+            }
+          } else {
+            console.log('No boards found for user');
+            setBoards([]);
+            setCurrentBoardId('');
           }
-        } else {
-          console.log('No boards found for user');
+        } catch (error) {
+          console.error('Error loading boards:', error);
+          // Don't crash the app, just show empty state
           setBoards([]);
           setCurrentBoardId('');
         }
-      });
+      }
+    };
 
-      // Cleanup function
-      return () => {
-        console.log('Cleaning up board subscription');
-        unsubscribe();
-      };
-    } else {
-      // User signed out, clear boards and cleanup
-      setBoards([]);
-      setCurrentBoardId('');
-      realtimeBoardService.unsubscribeFromAllBoards();
-    }
+    loadUserBoards();
   }, [user])
-
-  // Subscribe to real-time updates for the current board
-  useEffect(() => {
-    if (currentBoardId && user) {
-      console.log('Setting up real-time subscription for board:', currentBoardId);
-
-      const unsubscribe = realtimeBoardService.subscribeToBoardUpdates(currentBoardId, (updatedBoard) => {
-        if (updatedBoard && !isUpdatingBoard) {
-          console.log('Real-time board update received:', updatedBoard.title);
-
-          // Update the board in the boards array
-          setBoards(prevBoards =>
-            prevBoards.map(board =>
-              board.id === updatedBoard.id ? updatedBoard : board
-            )
-          );
-        }
-      });
-
-      // Cleanup function
-      return () => {
-        console.log('Cleaning up board subscription for:', currentBoardId);
-        unsubscribe();
-      };
-    }
-  }, [currentBoardId, user, isUpdatingBoard]);
 
   const handleUpdateBoard = async (updatedBoard: BoardType) => {
     try {
-      // Set flag to prevent infinite loops from real-time updates
-      setIsUpdatingBoard(true);
-
       // Update board in Firestore
-      await updateFirestoreBoard(updatedBoard.id, updatedBoard);
+      await updateFirestoreBoard(updatedBoard.id, updatedBoard)
 
-      console.log('Board updated in Firestore:', updatedBoard.title);
+      // Update local state
+      setBoards(boards.map(board =>
+        board.id === updatedBoard.id ? updatedBoard : board
+      ))
 
-      // Update sync time
-      setLastSyncTime(new Date());
-
-      // The real-time listener will handle updating the local state
-      // No need to manually update local state here
-
+      // If this is the current board, make sure we have the latest data
+      if (updatedBoard.id === currentBoardId) {
+        // Force a refresh of the current board to ensure we have the latest member data
+        const { getBoardById } = await import('./firebase/firestore');
+        const latestBoard = await getBoardById(updatedBoard.id);
+        if (latestBoard) {
+          setBoards(prevBoards =>
+            prevBoards.map(board =>
+              board.id === latestBoard.id ? latestBoard : board
+            )
+          );
+        }
+      }
     } catch (error) {
-      console.error('Error updating board:', error);
-    } finally {
-      // Reset the flag after a short delay to allow Firestore update to propagate
-      setTimeout(() => {
-        setIsUpdatingBoard(false);
-      }, 1000);
+      console.error('Error updating board:', error)
     }
   }
 
@@ -158,9 +128,6 @@ function App() {
     try {
       // Clean up presence before signing out
       await presenceService.stopPresence()
-
-      // Clean up all real-time board listeners
-      realtimeBoardService.unsubscribeFromAllBoards()
 
       await signOutUser()
       setBoards([])
@@ -460,12 +427,6 @@ function App() {
           onBoardUpdate={handleUpdateBoard}
         />
       )}
-
-      {/* Sync Status Indicator */}
-      <SyncStatus
-        isUpdating={isUpdatingBoard}
-        lastSyncTime={lastSyncTime}
-      />
     </div>
   )
 }
