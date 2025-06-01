@@ -9,10 +9,11 @@ import TrelloImport from './components/TrelloImport'
 import BoardSharingModal from './components/BoardSharingModal'
 import { Board as BoardType, User } from './types'
 import { onAuthStateChange, signOutUser } from './firebase/auth'
-import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard } from './firebase/firestore'
+import { getUserBoards, createBoard as createFirestoreBoard, updateBoard as updateFirestoreBoard, deleteBoard as deleteFirestoreBoard, getBoardById } from './firebase/firestore'
 import { getDominantColor, darkenColor } from './utils/colorUtils'
 import { useModalContext } from './context/ModalContext'
 import { presenceService } from './services/presenceService'
+import { loadLastOpenedBoardId, saveLastOpenedBoardId } from './services/localStorage';
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -48,10 +49,13 @@ function App() {
           if (loadedBoards && loadedBoards.length > 0) {
             setBoards(loadedBoards);
 
-            // Set the current board to the first board if no board is currently selected
-            if (!currentBoardId || !loadedBoards.find(board => board.id === currentBoardId)) {
-              setCurrentBoardId(loadedBoards[0].id);
-            }
+            // Attempt to load the last opened board
+            const lastOpenedBoardId = loadLastOpenedBoardId();
+            const boardToOpen = lastOpenedBoardId && loadedBoards.find(board => board.id === lastOpenedBoardId)
+              ? lastOpenedBoardId
+              : loadedBoards[0].id;
+
+            setCurrentBoardId(boardToOpen);
           } else {
             console.log('No boards found for user');
             setBoards([]);
@@ -69,6 +73,13 @@ function App() {
     loadUserBoards();
   }, [user])
 
+  // Save last opened board ID to localStorage whenever currentBoardId changes
+  useEffect(() => {
+    if (currentBoardId) {
+      saveLastOpenedBoardId(currentBoardId);
+    }
+  }, [currentBoardId]);
+
   const handleUpdateBoard = async (updatedBoard: BoardType) => {
     try {
       // Update board in Firestore
@@ -82,7 +93,6 @@ function App() {
       // If this is the current board, make sure we have the latest data
       if (updatedBoard.id === currentBoardId) {
         // Force a refresh of the current board to ensure we have the latest member data
-        const { getBoardById } = await import('./firebase/firestore');
         const latestBoard = await getBoardById(updatedBoard.id);
         if (latestBoard) {
           setBoards(prevBoards =>
@@ -354,7 +364,7 @@ function App() {
           }
         } else if (currentBoard.backgroundColor) {
           // If there's only a background color, darken it slightly to differentiate from the board
-          const darkerColor = darkenColor(currentBoard.backgroundColor, 0.15); // Darken by 15%
+          const darkerColor = darkenColor(currentBoard.backgroundColor, 0.15); // Darken by 15% 
           setHeaderColor(darkerColor);
         } else {
           // Default color

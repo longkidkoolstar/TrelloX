@@ -2,6 +2,8 @@ import { Board } from '../types';
 
 const STORAGE_KEY = 'trellox_boards';
 
+const LAST_OPENED_BOARD_KEY = 'trellox_last_opened_board_id';
+
 export const saveBoards = (boards: Board[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(boards));
@@ -95,4 +97,21 @@ export const loadBoards = (): Board[] => {
       members: []
     }
   ];
+};
+
+export const saveLastOpenedBoardId = (boardId: string): void => {
+  try {
+    localStorage.setItem(LAST_OPENED_BOARD_KEY, boardId);
+  } catch (error) {
+    console.error('Error saving last opened board ID to localStorage:', error);
+  }
+};
+
+export const loadLastOpenedBoardId = (): string | null => {
+  try {
+    return localStorage.getItem(LAST_OPENED_BOARD_KEY);
+  } catch (error) {
+    console.error('Error loading last opened board ID from localStorage:', error);
+    return null;
+  }
 };
