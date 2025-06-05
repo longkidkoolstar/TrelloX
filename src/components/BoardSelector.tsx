@@ -52,7 +52,12 @@ const BoardSelector: React.FC<BoardSelectorProps> = ({
                 >
                   <div
                     className="board-selector-color"
-                    style={{ backgroundColor: board.backgroundColor || '#0079bf' }}
+                    style={{
+                      backgroundColor: board.backgroundImage ? 'transparent' : board.backgroundColor || '#0079bf',
+                      backgroundImage: board.backgroundImage ? `url(${board.backgroundImage})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
                   ></div>
                   <span>{board.title}</span>
                 </div>

@@ -292,31 +292,16 @@ const Board: React.FC<BoardProps> = ({ board, onUpdateBoard }) => {
     }
   };
 
-  // Determine the background style based on available background properties
-  let boardStyle = {};
-
-  if (board.backgroundImage) {
-    // If we have a background image, use it
-    boardStyle = {
-      backgroundImage: `url(${board.backgroundImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center'
-    };
-  } else if (board.backgroundColor && board.backgroundColor.startsWith('linear-gradient')) {
-    // If we have a gradient background
-    boardStyle = {
-      backgroundImage: board.backgroundColor,
-      backgroundSize: 'cover'
-    };
-  } else {
-    // Default to solid color background
-    boardStyle = {
-      backgroundColor: board.backgroundColor || '#0079bf'
-    };
-  }
-
   return (
-    <div className="board" style={boardStyle}>
+    <div
+      className="board"
+      style={{
+        backgroundColor: board.backgroundImage ? 'transparent' : board.backgroundColor || '#0079bf',
+        backgroundImage: board.backgroundImage ? `url(${board.backgroundImage})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
