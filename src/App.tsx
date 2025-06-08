@@ -377,7 +377,11 @@ function App() {
   }, [currentBoard]);
 
   if (loading) {
-    return <div className="loading">Loading...</div>
+    return (
+      <div className="loading">
+        <div className="loading-text">Loading TrelloX...</div>
+      </div>
+    )
   }
 
   if (!user) {
