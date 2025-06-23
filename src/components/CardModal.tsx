@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card as CardType, Label, LabelColor, Comment, Attachment, Checklist, CheckItem } from '../types';
+import { getCurrentUser } from '../firebase/auth';
 import './CardModal.css';
 
 interface CardModalProps {
@@ -84,12 +85,13 @@ const CardModal: React.FC<CardModalProps> = ({
   const handleAddComment = () => {
     if (!newCommentText.trim()) return;
 
+    const currentUser = getCurrentUser();
     const newComment: Comment = {
       id: uuidv4(),
       text: newCommentText,
       createdAt: new Date().toISOString(),
-      author: 'You',
-      authorId: ''
+      author: currentUser?.displayName || 'Anonymous',
+      authorId: currentUser?.uid || ''
     };
 
     const updatedComments = [...card.comments, newComment];
